@@ -15,21 +15,21 @@ $ composer require inc2734/wp-page-speed-optimization
 // When Using composer auto loader
 new Inc2734\WP_Page_Speed_Optimization\Page_Speed_Optimization();
 
-add_filter( 'inc2734_wp_page_speed_optimization_defer_scripts', function( $handles ) ) {
+add_filter( 'inc2734_wp_page_speed_optimization_defer_scripts', function( $handles ) {
 	return array_merge( $handles, [
 		get_template(),
 		get_stylesheet(),
 	] );
-}
+} );
 
-add_filter( 'inc2734_wp_page_speed_optimization_async_scripts', function( $handles ) ) {
+add_filter( 'inc2734_wp_page_speed_optimization_async_scripts', function( $handles ) {
 	return array_merge( $handles, [
 		'comment-reply',
 		'wp-embed',
 	] );
-}
+} );
 
-add_filter( 'inc2734_wp_page_speed_optimization_http2_server_push_handles', function( $handles ) ) {
+add_filter( 'inc2734_wp_page_speed_optimization_http2_server_push_handles', function( $handles ) {
 	return $handles;
-}
+} );
 ```

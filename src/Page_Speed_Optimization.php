@@ -57,8 +57,8 @@ class Page_Speed_Optimization {
 	 * @return void
 	 */
 	public function _http2_server_push() {
-		_send_http2_server_push_header( wp_styles(), 'style' );
-		_send_http2_server_push_header( wp_scripts(), 'script' );
+		$this->_send_http2_server_push_header( wp_styles(), 'style' );
+		$this->_send_http2_server_push_header( wp_scripts(), 'script' );
 	}
 
 	/**
