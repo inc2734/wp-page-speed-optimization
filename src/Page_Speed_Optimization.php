@@ -57,6 +57,15 @@ class Page_Speed_Optimization {
 	 * @return void
 	 */
 	public function _http2_server_push() {
+		if ( headers_sent() ) {
+			return;
+		}
+
+		$do_http2_server_push = apply_filters( 'inc2734_wp_page_speed_optimization_do_http2_server_push', false );
+		if ( ! $do_http2_server_push ) {
+			return;
+		}
+
 		$this->_send_http2_server_push_header( wp_styles(), 'style' );
 		$this->_send_http2_server_push_header( wp_scripts(), 'script' );
 	}

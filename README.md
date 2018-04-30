@@ -32,4 +32,6 @@ add_filter( 'inc2734_wp_page_speed_optimization_async_scripts', function( $handl
 add_filter( 'inc2734_wp_page_speed_optimization_http2_server_push_handles', function( $handles ) {
 	return $handles;
 } );
+
+add_filter( 'inc2734_wp_page_speed_optimization_do_http2_server_push', '__return_true' );
 ```
