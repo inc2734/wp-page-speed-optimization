@@ -141,7 +141,8 @@ class Page_Speed_Optimization {
 	 * @return string
 	 */
 	public function _set_preload_stylesheet( $tag, $handle, $src ) {
-		if ( 0 === strpos( $src, home_url() ) && apply_filters( 'inc2734_wp_page_speed_optimization_output_head_style', false ) ) {
+		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_output_head_styles', [] );
+		if ( in_array( $handle, $handles ) && 0 === strpos( $src, home_url() ) ) {
 			$parse = parse_url( $src );
 			$buffer = \file_get_contents( ABSPATH . $parse['path'] );
 			$buffer = str_replace( 'url(../', 'url(' . dirname( $parse['path'] ) . '/../', $buffer );
@@ -152,7 +153,10 @@ class Page_Speed_Optimization {
 			<?php
 			// @codingStandardsIgnoreEnd
 			return;
-		} elseif ( apply_filters( 'inc2734_wp_page_speed_optimization_do_preload_stylesheet', false ) ) {
+		}
+
+		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', [] );
+		if ( in_array( $handle, $handles ) ) {
 			return str_replace( '\'stylesheet\'', '\'preload\' as="style"', $tag );
 		}
 
@@ -165,7 +169,7 @@ class Page_Speed_Optimization {
 	 * @return void
 	 */
 	public function _build_stylesheet_link() {
-		if ( ! apply_filters( 'inc2734_wp_page_speed_optimization_do_preload_stylesheet', false ) ) {
+		if ( ! apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', [] ) ) {
 			return;
 		}
 

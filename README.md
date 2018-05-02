@@ -29,11 +29,31 @@ add_filter( 'inc2734_wp_page_speed_optimization_async_scripts', function( $handl
 	] );
 } );
 
+add_filter( 'inc2734_wp_page_speed_optimization_do_http2_server_push', '__return_true' );
+
 add_filter( 'inc2734_wp_page_speed_optimization_http2_server_push_handles', function( $handles ) {
 	return $handles;
 } );
 
-add_filter( 'inc2734_wp_page_speed_optimization_do_http2_server_push', '__return_true' );
+add_filter( 'inc2734_wp_page_speed_optimization_output_head_styles', function( $handles ) {
+	return array_merge( $handles, [
+		get_template(),
+		get_stylesheet(),
+	] );
+} );
 
-add_filter( 'inc2734_wp_page_speed_optimization_output_head_style', '__return_true' );
+add_filter( 'inc2734_wp_page_speed_optimization_preload_stylesheets', function( $handles ) {
+	$wp_styles = wp_styles();
+	$preload_handles = $wp_styles->queue;
+
+	if ( in_array( get_template(), $preload_handles ) ) {
+		unset( $preload_handles[ get_template() ] );
+	}
+
+	if ( in_array( get_stylesheet(), $preload_handles ) ) {
+		unset( $preload_handles[ get_stylesheet() ] );
+	}
+
+	return array_merge( $handles, $preload_handles );
+} );
 ```
