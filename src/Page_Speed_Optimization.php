@@ -14,6 +14,7 @@ class Page_Speed_Optimization {
 		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 10, 3 );
 		add_filter( 'script_loader_tag', [ $this, '_builded' ], 10, 3 );
 		add_action( 'send_headers', [ $this, '_http2_server_push' ], 99999 );
+		add_action( 'init', [ $this, '_optimize_jquery_loading' ] );
 
 		if ( ! is_admin() ) {
 			add_filter( 'style_loader_tag', [ $this, '_set_preload_stylesheet' ], 10, 3 );
@@ -189,5 +190,35 @@ document.head.appendChild(s);
 </script>
 		<?php
 		// @codingStandardsIgnoreEnd
+	}
+
+	/**
+	 * Optimize jQuery loading
+	 *
+	 * jQuery loads in footer and Invalidate jquery-migrate
+	 *
+	 * @return void
+	 */
+	public function _optimize_jquery_loading() {
+		$optimize_loading = apply_filters( 'inc2734_wp_page_speed_optimization_optimize_jquery_loading', false );
+		if ( ! $optimize_loading ) {
+			return;
+		}
+
+		if ( is_admin() ) {
+			return;
+		}
+
+		global $wp_scripts;
+
+		$jquery = $wp_scripts->registered['jquery-core'];
+		$jquery_ver = $jquery->ver;
+		$jquery_src = $jquery->src;
+
+		wp_deregister_script( 'jquery' );
+		wp_deregister_script( 'jquery-core' );
+
+		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver, true );
+		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver, true );
 	}
 }

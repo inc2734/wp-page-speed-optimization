@@ -56,4 +56,6 @@ add_filter( 'inc2734_wp_page_speed_optimization_preload_stylesheets', function( 
 
 	return array_merge( $handles, $preload_handles );
 } );
+
+add_filter( 'inc2734_wp_page_speed_optimization_optimize_jquery_loading', '__return_true' );
 ```
