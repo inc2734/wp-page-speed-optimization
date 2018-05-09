@@ -205,7 +205,7 @@ document.head.appendChild(s);
 			return;
 		}
 
-		if ( is_admin() ) {
+		if ( is_admin() || in_array( $GLOBALS['pagenow'], [ 'wp-login.php', 'wp-register.php' ] ) ) {
 			return;
 		}
 
