@@ -58,4 +58,13 @@ add_filter( 'inc2734_wp_page_speed_optimization_preload_stylesheets', function( 
 } );
 
 add_filter( 'inc2734_wp_page_speed_optimization_optimize_jquery_loading', '__return_true' );
+
+// If `set-expires-header` customize setting
+add_action( 'customize_save_set-expires-header', function( $customize_setting ) {
+	if ( $customize_setting->post_value() === $customize_setting->value() ) {
+		return;
+	}
+
+	\Inc2734\WP_Page_Speed_Optimization\Page_Speed_Optimization::write_cache_control_setting( (bool) $customize_setting->post_value() );
+} );
 ```
