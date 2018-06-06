@@ -143,9 +143,16 @@ class Page_Speed_Optimization {
 	 */
 	public function _set_preload_stylesheet( $tag, $handle, $src ) {
 		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_output_head_styles', [] );
-		if ( in_array( $handle, $handles ) && 0 === strpos( $src, home_url() ) ) {
-			$parse = parse_url( $src );
-			$buffer = \file_get_contents( ABSPATH . $parse['path'] );
+		if ( in_array( $handle, $handles ) && 0 === strpos( $src, site_url() ) ) {
+			$sitepath = site_url( '', 'relative' );
+			$abspath  = untrailingslashit( ABSPATH );
+
+			if ( $sitepath ) {
+				$abspath = preg_replace( '|(.*?)' . preg_quote( $sitepath ) . '$|', '$1', $abspath );
+			}
+
+			$parse  = parse_url( $src );
+			$buffer = \file_get_contents( $abspath . $parse['path'] );
 			$buffer = str_replace( 'url(../', 'url(' . dirname( $parse['path'] ) . '/../', $buffer );
 			$buffer = str_replace( 'url(//', 'url(/', $buffer );
 			// @codingStandardsIgnoreStart
