@@ -67,4 +67,8 @@ add_action( 'customize_save_set-expires-header', function( $customize_setting ) 
 
 	\Inc2734\WP_Page_Speed_Optimization\Page_Speed_Optimization::write_cache_control_setting( (bool) $customize_setting->post_value() );
 } );
+
+add_filter( 'inc2734_wp_page_speed_optimization_caching_nav_menus', '__return_true' );
+
+add_filter( 'inc2734_wp_page_speed_optimization_caching_sidebars', '__return_true' );
 ```
