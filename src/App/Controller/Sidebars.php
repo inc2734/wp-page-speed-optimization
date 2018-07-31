@@ -12,6 +12,7 @@ class Sidebars {
 	public function __construct() {
 		add_filter( 'widget_update_callback', [ $this, '_widget_update_callback' ], 10, 4 );
 		add_action( 'customize_save', [ $this, '_customize_save' ] );
+		add_action( 'save_post', [ $this, '_save_post' ] );
 	}
 
 	/**
@@ -21,11 +22,38 @@ class Sidebars {
 	 * @return void
 	 */
 	public function _customize_save( $manager ) {
+		if ( ! static::_is_caching_sidebars() ) {
+			return;
+		}
+
+		$this->_delete_all_cache();
+	}
+
+	/**
+	 * Delete cache on post saving
+	 *
+	 * @param int $post_id
+	 * @return void
+	 */
+	public function _save_post( $post_id ) {
+		if ( ! static::_is_caching_sidebars() ) {
+			return;
+		}
+
+		$this->_delete_all_cache();
+	}
+
+	/**
+	 * Delete all cache
+	 *
+	 * @return void
+	 */
+	protected function _delete_all_cache() {
 		$sidebars_widgets = wp_get_sidebars_widgets();
 		$sidebars = array_keys( $sidebars_widgets );
 
 		foreach ( $sidebars as $sidebar_id ) {
-			if ( ! static::_is_caching_sidebars( $sidebar_id ) ) {
+			if ( ! static::_is_caching_sidebar( $sidebar_id ) ) {
 				continue;
 			}
 
@@ -41,6 +69,10 @@ class Sidebars {
 	 * @return void
 	 */
 	public function _widget_update_callback( $instance, $new_instance, $old_instance, $wp_widget ) {
+		if ( ! static::_is_caching_sidebars() ) {
+			return $instance;
+		}
+
 		$sidebars_widgets = wp_get_sidebars_widgets();
 		foreach ( $sidebars_widgets as $_sidebar_id => $widgets ) {
 			$widgets = array_flip( $widgets );
@@ -53,7 +85,7 @@ class Sidebars {
 			return $instance;
 		}
 
-		if ( ! static::_is_caching_sidebars( $sidebar_id ) ) {
+		if ( ! static::_is_caching_sidebar( $sidebar_id ) ) {
 			return $instance;
 		}
 
@@ -70,7 +102,12 @@ class Sidebars {
 	 * @return void
 	 */
 	public static function dynamic_sidebar( $sidebar_id ) {
-		if ( ! static::_is_caching_sidebars( $sidebar_id ) ) {
+		if ( ! static::_is_caching_sidebars() ) {
+			dynamic_sidebar( $sidebar_id );
+			return;
+		}
+
+		if ( ! static::_is_caching_sidebar( $sidebar_id ) ) {
 			dynamic_sidebar( $sidebar_id );
 			return;
 		}
@@ -91,7 +128,7 @@ class Sidebars {
 		}
 
 		// @codingStandardsIgnoreStart
-		echo $transient;
+		echo '<!-- Cached sidebar ' . $sidebar_id . ' -->' . $transient . '<!-- /Cached sidebar ' . $sidebar_id . ' -->';
 		// @codingStandardsIgnoreEnd
 	}
 
@@ -108,10 +145,19 @@ class Sidebars {
 	/**
 	 * return true when caching
 	 *
+	 * @return boolean
+	 */
+	protected static function _is_caching_sidebars() {
+		return apply_filters( 'inc2734_wp_page_speed_optimization_caching_sidebars', false );
+	}
+
+	/**
+	 * return true when caching
+	 *
 	 * @param string $location
 	 * @return boolean
 	 */
-	protected static function _is_caching_sidebars( $sidebar_id ) {
-		return apply_filters( 'inc2734_wp_page_speed_optimization_caching_sidebars', false, $sidebar_id );
+	protected static function _is_caching_sidebar( $sidebar_id ) {
+		return apply_filters( 'inc2734_wp_page_speed_optimization_caching_sidebar', static::_is_caching_sidebars(), $sidebar_id );
 	}
 }
