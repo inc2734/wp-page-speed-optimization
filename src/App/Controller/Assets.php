@@ -73,7 +73,15 @@ class Assets {
 			return $tag;
 		}
 
-		return sprintf( '<script>var s=document.createElement("script");s.src="%s";s.async=true;document.body.appendChild(s);</script>', $src );
+		return sprintf( '<script>
+			document.addEventListener("DOMContentLoaded", function(event) {
+				var s=document.createElement("script");
+				s.src="%s";
+				s.async=true;document.body.appendChild(s);
+			});
+			</script>',
+			$src
+		);
 	}
 
 	/**
