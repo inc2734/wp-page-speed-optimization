@@ -2,7 +2,6 @@
   "name": "inc2734/wp-page-speed-optimization",
   "description": "A library for WordPress.",
   "license": "GPL-2.0-or-later",
-  "version": "0.7.3",
   "require": {
     "php": ">=5.6"
   },

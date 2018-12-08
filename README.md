@@ -14,7 +14,7 @@ $ composer require inc2734/wp-page-speed-optimization
 ```
 <?php
 // When Using composer auto loader
-new Inc2734\WP_Page_Speed_Optimization\Page_Speed_Optimization();
+new Inc2734\WP_Page_Speed_Optimization\Bootstrap();
 ```
 
 ### Add defer attribute
@@ -86,7 +86,7 @@ add_action( 'customize_save_set-expires-header', function( $customize_setting ) 
 		return;
 	}
 
-	\Inc2734\WP_Page_Speed_Optimization\Page_Speed_Optimization::write_cache_control_setting( (bool) $customize_setting->post_value() );
+	\Inc2734\WP_Page_Speed_Optimization\Helper\write_cache_control_setting( (bool) $customize_setting->post_value() );
 } );
 ```
 
@@ -102,6 +102,15 @@ add_filter( 'inc2734_wp_page_speed_optimization_caching_nav_menus', '__return_tr
 add_filter( 'inc2734_wp_page_speed_optimization_caching_sidebars', '__return_true' );
 
 // in template
-use \Inc2734\WP_Page_Speed_Optimization\Page_Speed_Optimization;
-Page_Speed_Optimization::dynamic_sidebar( 'footer-widget-area' );
+\Inc2734\WP_Page_Speed_Optimization\Page_Speed_Optimization\Helper\dynamic_sidebar( 'footer-widget-area' );
+```
+
+### Async loading of attachment image
+```
+add_filter( 'inc2734_wp_page_speed_async_attachment_images', '__return_true' );
+```
+
+### Async loading of content image
+```
+add_filter( 'inc2734_wp_page_speed_async_content_images', '__return_true' );
 ```

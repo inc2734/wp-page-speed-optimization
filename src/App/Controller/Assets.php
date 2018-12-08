@@ -73,7 +73,8 @@ class Assets {
 			return $tag;
 		}
 
-		return sprintf( '<script>
+		return sprintf(
+			'<script>
 			document.addEventListener("DOMContentLoaded", function(event) {
 				var s=document.createElement("script");
 				s.src="%s";
