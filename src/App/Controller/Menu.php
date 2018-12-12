@@ -97,6 +97,11 @@ class Menu {
 			return $output;
 		}
 
+		// For the nav menu widget.
+		if ( ! $args->theme_location ) {
+			return $output;
+		}
+
 		if ( ! $this->_is_caching_nav_menus() ) {
 			return $output;
 		}
