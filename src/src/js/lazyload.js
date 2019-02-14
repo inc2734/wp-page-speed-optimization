@@ -6,19 +6,26 @@ window.addEventListener('DOMContentLoaded', () => {
   const images = document.querySelectorAll('img[data-src][decoding="async"]');
 
   const replaceImg = (img) => {
+    if (!! img.getAttribute('data-src')) {
+      img.setAttribute('src', img.getAttribute('data-src'));
+      img.removeAttribute('data-src');
+    }
+
+    if (!! img.getAttribute('data-srcset')) {
+      img.setAttribute('srcset', img.getAttribute('data-srcset'));
+      img.removeAttribute('data-srcset');
+    }
+  };
+
+  const replacePrefetchedImg = (img) => {
     const prefetchImg = new Image();
 
     prefetchImg.onload = () => {
-      img.setAttribute('src', img.getAttribute('data-src'));
-      img.removeAttribute('data-src');
-      if (!! img.getAttribute('data-srcset')) {
-        img.setAttribute('srcset', img.getAttribute('data-srcset'));
-        img.removeAttribute('data-srcset');
-      }
+      replaceImg(img);
     };
 
     prefetchImg.src = img.getAttribute('data-src');
-  }
+  };
 
   if (typeof IntersectionObserver !== 'undefined') {
     const lazyLoadObserver = new IntersectionObserver((entries, object) => {
@@ -27,7 +34,7 @@ window.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        replaceImg(entry.target);
+        replacePrefetchedImg(entry.target);
         object.unobserve(entry.target);
       });
     },
