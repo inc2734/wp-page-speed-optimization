@@ -54,9 +54,9 @@ class LazyLoad {
 			return;
 		}
 
-		$relative_path = '/vendor/inc2734/wp-page-speed-optimization/src/assets/js/lazyload.min.js';
+		$relative_path = '/vendor/inc2734/wp-page-speed-optimization/src/assets/js/app.min.js';
 		wp_enqueue_script(
-			'wp-page-speed-optimization-lazyload',
+			'wp-page-speed-optimization',
 			get_template_directory_uri() . $relative_path,
 			[],
 			filemtime( get_template_directory() . $relative_path ),

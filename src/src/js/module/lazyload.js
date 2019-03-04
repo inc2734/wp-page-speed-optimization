@@ -2,20 +2,20 @@
 
 import forEachHtmlNodes from '@inc2734/for-each-html-nodes';
 
-window.addEventListener('DOMContentLoaded', () => {
+export const replaceImg = (img) => {
+  if (!! img.getAttribute('data-src')) {
+    img.setAttribute('src', img.getAttribute('data-src'));
+    img.removeAttribute('data-src');
+  }
+
+  if (!! img.getAttribute('data-srcset')) {
+    img.setAttribute('srcset', img.getAttribute('data-srcset'));
+    img.removeAttribute('data-srcset');
+  }
+};
+
+export const lazyload = () => {
   const images = document.querySelectorAll('img[data-src][decoding="async"]');
-
-  const replaceImg = (img) => {
-    if (!! img.getAttribute('data-src')) {
-      img.setAttribute('src', img.getAttribute('data-src'));
-      img.removeAttribute('data-src');
-    }
-
-    if (!! img.getAttribute('data-srcset')) {
-      img.setAttribute('srcset', img.getAttribute('data-srcset'));
-      img.removeAttribute('data-srcset');
-    }
-  };
 
   const replacePrefetchedImg = (img) => {
     const prefetchImg = new Image();
@@ -43,12 +43,8 @@ window.addEventListener('DOMContentLoaded', () => {
       threshold: [0, 0.5, 1.0]
     });
 
-    forEachHtmlNodes(images, (img) => {
-      lazyLoadObserver.observe(img);
-    });
+    forEachHtmlNodes(images, (img) => lazyLoadObserver.observe(img));
   } else {
-    forEachHtmlNodes(images, (img) => {
-      replaceImg(img);
-    });
+    forEachHtmlNodes(images, (img) => replaceImg(img));
   }
-});
+};
