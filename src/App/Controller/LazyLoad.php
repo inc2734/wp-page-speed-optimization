@@ -12,6 +12,8 @@ class LazyLoad {
 	public function __construct() {
 		add_filter( 'wp_kses_allowed_html', [ $this, '_allow_decoding' ], 10, 2 );
 		add_filter( 'wp_kses_allowed_html', [ $this, '_allow_loading' ], 10, 2 );
+		add_filter( 'post_thumbnail_html', [ $this, '_async_thumbnail' ], 10 );
+		add_filter( 'post_thumbnail_html', [ $this, '_lazyload_thumbnail' ], 10 );
 		add_filter( 'wp_get_attachment_image_attributes', [ $this, '_async_attachment_images' ], 10, 3 );
 		add_filter( 'the_content', [ $this, '_async_content_images' ] );
 		add_filter( 'the_content', [ $this, '_lazyload_content_images' ] );
@@ -65,6 +67,42 @@ class LazyLoad {
 
 		$tags['img'] = array_merge( $tags['img'], [ 'loading' => true ] );
 		return $tags;
+	}
+
+	/**
+	 * Async decoding of custom thumbnail
+	 *
+	 * @param string $html
+	 * @return string
+	 */
+	public function _async_thumbnail( $html ) {
+		if ( ! $this->_is_async_attachment_images() ) {
+			return $html;
+		}
+
+		if ( $html && false === strpos( $html, ' decoding=' ) ) {
+			$html = $this->_add_decoding_to_content_image( $html );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Lazyloade decoding of custom thumbnail
+	 *
+	 * @param string $html
+	 * @return string
+	 */
+	public function _lazyload_thumbnail( $html ) {
+		if ( ! $this->_is_async_attachment_images() ) {
+			return $html;
+		}
+
+		if ( $html && false === strpos( $html, ' loading=' ) ) {
+			$html = $this->_add_loading_to_content_image( $html );
+		}
+
+		return $html;
 	}
 
 	/**
