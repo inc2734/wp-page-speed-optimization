@@ -105,8 +105,13 @@ class Assets {
 
 			$parse  = parse_url( $src );
 			$buffer = \file_get_contents( $abspath . $parse['path'] );
-			$buffer = str_replace( 'url(../', 'url(' . dirname( $parse['path'] ) . '/../', $buffer );
-			$buffer = str_replace( 'url(//', 'url(/', $buffer );
+			$buffer = preg_replace( '|url\(\s*?[\'"]?./|', 'url(' . dirname( $parse['path'] ) . '/', $buffer );
+			$buffer = preg_replace( '|url\(\s*?[\'"]?../|', 'url(' . dirname( $parse['path'] ) . '/../', $buffer );
+			$buffer = preg_replace( '|url\(\s*?[\'"]?//|', 'url(/', $buffer );
+			$buffer = str_replace( [ "\n\r", "\n", "\r", "\t" ], '', $buffer );
+			$buffer = preg_replace( '|{\s*|', '{', $buffer );
+			$buffer = preg_replace( '|}\s*|', '}', $buffer );
+			$buffer = preg_replace( '|;\s*|', ';', $buffer );
 			// @codingStandardsIgnoreStart
 			?>
 			<style><?php echo $buffer; ?></style>
