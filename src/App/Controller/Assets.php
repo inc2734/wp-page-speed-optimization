@@ -114,18 +114,23 @@ class Assets {
 			$buffer = preg_replace( '|;\s*|', ';', $buffer );
 			$buffer = preg_replace( '|@charset .+?;|', '', $buffer );
 			$buffer = preg_replace( '|/\*.*?\*/|', '', $buffer );
-			// @codingStandardsIgnoreStart
 			?>
-			<!-- <?php echo $tag; ?> -->
-			<style><?php echo $buffer; ?></style>
+			<!-- <?php echo $tag; // xss ok. ?> -->
+			<style><?php echo $buffer; // xss ok. ?></style>
 			<?php
-			// @codingStandardsIgnoreEnd
 			return;
 		}
 
 		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', [] );
 		if ( in_array( $handle, $handles ) ) {
-			return str_replace( '\'stylesheet\'', '\'preload\' as="style"', $tag );
+			?>
+			<!-- <?php echo $tag; // xss ok. ?> -->
+			<?php
+			$preload_for_legacy = str_replace( 'media=\'all\'', 'media="print"', $tag );
+			$preload_for_legacy = str_replace( '/>', 'onload="this.media=\'all\'" />', $preload_for_legacy );
+			$preload_for_modern = str_replace( 'rel=\'stylesheet\'', 'rel="preload"', $tag );
+			$preload_for_modern = str_replace( '/>', 'as="style" />', $preload_for_modern );
+			return $preload_for_legacy . $preload_for_modern;
 		}
 
 		return $tag;
