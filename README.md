@@ -50,6 +50,14 @@ add_filter( 'inc2734_wp_page_speed_optimization_http2_server_push_handles', func
 } );
 ```
 
+### Use link prefetching
+```
+add_filter( 'inc2734_wp_page_speed_optimization_link_prefetching', '__return_true' );
+add_filter( 'inc2734_wp_page_speed_optimization_link_prefetching_selector', '.l-header, .l-contents__main' );
+add_filter( 'inc2734_wp_page_speed_optimization_link_prefetching_interval', 2000 );
+add_filter( 'inc2734_wp_page_speed_optimization_link_prefetching_connections', 1 );
+```
+
 ### Output CSS to head
 ```
 add_filter( 'inc2734_wp_page_speed_optimization_output_head_styles', function( $handles ) {

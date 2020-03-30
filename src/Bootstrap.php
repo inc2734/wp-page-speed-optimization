@@ -19,5 +19,6 @@ class Bootstrap {
 		new App\Controller\Sidebars();
 		new App\Controller\Menu();
 		new App\Controller\LazyLoad();
+		new App\Controller\Prefetch();
 	}
 }
