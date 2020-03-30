@@ -103,7 +103,7 @@ document.addEventListener(
     const selectorWithLink = selectors.map((selector) => `${ selector } a[href^="${ window.location.origin }"]`);
     const links = document.querySelectorAll(selectorWithLink);
 
-    //initObserve(links);
+    initObserve(links);
     forEachHtmlNodes(links, initHover);
     const timerId = setInterval(handleInterval, WPPSO.prefetch.interval);
   }

@@ -10,14 +10,15 @@ namespace Inc2734\WP_Page_Speed_Optimization\App\Controller;
 class Prefetch {
 
 	public function __construct() {
-		$link_prefetching = apply_filters( 'inc2734_wp_page_speed_optimization_link_prefetching', false );
-		if ( ! $link_prefetching ) {
-			return;
-		}
 
 		add_action(
 			'wp_enqueue_scripts',
 			function() {
+				$link_prefetching = apply_filters( 'inc2734_wp_page_speed_optimization_link_prefetching', false );
+				if ( ! $link_prefetching ) {
+					return;
+				}
+
 				$relative_path = '/vendor/inc2734/wp-page-speed-optimization/src/assets/js/prefetch.js';
 				wp_enqueue_script(
 					'wp-page-speed-optimization@prefetch',
