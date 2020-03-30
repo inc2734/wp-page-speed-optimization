@@ -10,7 +10,6 @@ namespace Inc2734\WP_Page_Speed_Optimization\App\Controller;
 class Prefetch {
 
 	public function __construct() {
-
 		add_action(
 			'wp_enqueue_scripts',
 			function() {
