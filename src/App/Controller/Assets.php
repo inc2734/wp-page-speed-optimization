@@ -114,9 +114,13 @@ class Assets {
 			$buffer = preg_replace( '|;\s*|', ';', $buffer );
 			$buffer = preg_replace( '|@charset .+?;|', '', $buffer );
 			$buffer = preg_replace( '|/\*.*?\*/|', '', $buffer );
+
+			$media = preg_match( '|media=\'([^\']*?)\'|', $tag, $match )
+				? $match[1]
+				: 'all';
 			?>
 			<!-- <?php echo $tag; // xss ok. ?> -->
-			<style><?php echo $buffer; // xss ok. ?></style>
+			<style media="<?php echo esc_attr( $media ); ?>"><?php echo $buffer; // xss ok. ?></style>
 			<?php
 			return;
 		}
