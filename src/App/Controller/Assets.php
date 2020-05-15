@@ -9,15 +9,116 @@ namespace Inc2734\WP_Page_Speed_Optimization\App\Controller;
 
 class Assets {
 
+	/**
+	 * The handle of scripts that depends on jQuery
+	 *
+	 * @var array
+	 */
+	protected $jquery_depend_handles = [
+		'jquery'      => 'jquery',
+		'jquery-core' => 'jquery-core',
+	];
+
 	public function __construct() {
+		add_action( 'wp_head', [ $this, '_optimize_jquery_loading' ], 2 );
+		add_filter( 'script_loader_tag', [ $this, '_set_defer_jquery_depend' ], 10, 3 );
+
+		add_action( 'wp_head', [ $this, '_update_in_footer' ], 2 );
 		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 10, 3 );
 		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 10, 3 );
+
 		add_filter( 'script_loader_tag', [ $this, '_builded' ], 10, 3 );
-		add_action( 'init', [ $this, '_optimize_jquery_loading' ] );
 
 		if ( ! is_admin() ) {
 			add_filter( 'style_loader_tag', [ $this, '_set_preload_stylesheet' ], 10, 3 );
 			add_action( 'wp_footer', [ $this, '_build_stylesheet_link' ], 99999 );
+		}
+	}
+
+	/**
+	 * Optimize jQuery loading
+	 *
+	 * jQuery loads in footer and Invalidate jquery-migrate
+	 *
+	 * @return void
+	 */
+	public function _optimize_jquery_loading() {
+		if ( ! $this->_is_optimize_jquery_loading() ) {
+			return;
+		}
+
+		if ( is_admin() || in_array( $GLOBALS['pagenow'], [ 'wp-login.php', 'wp-register.php' ] ) ) {
+			return;
+		}
+
+		$scripts = wp_scripts();
+
+		$jquery = $scripts->registered['jquery-core'];
+		$jquery_ver = $jquery->ver;
+		$jquery_src = $jquery->src;
+
+		wp_deregister_script( 'jquery' );
+		wp_deregister_script( 'jquery-core' );
+		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver, true );
+		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver, true );
+
+		foreach ( $scripts->registered as $handle => $dependency ) {
+			if ( in_array( 'jquery', $dependency->deps ) ) {
+				$this->jquery_depend_handles[ $handle ] = $handle;
+			}
+		}
+	}
+
+	/**
+	 * Set defer for scripts that depends on jQuery
+	 *
+	 * @param string $tag
+	 * @param string handle
+	 * @param string src
+	 * @return string
+	 */
+	public function _set_defer_jquery_depend( $tag, $handle, $src ) {
+		if ( ! $this->_is_optimize_jquery_loading() ) {
+			return $tag;
+		}
+
+		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
+			return $tag;
+		}
+
+		if ( ! in_array( $handle, $this->jquery_depend_handles ) ) {
+			return $tag;
+		}
+
+		$this->jquery_depend_handles[ $handle ] = $handle;
+		return str_replace( ' src', ' defer src', $tag );
+	}
+
+	/**
+	 * defer/async script move to head
+	 *
+	 * @return void
+	 */
+	public function _update_in_footer() {
+		$handles = [];
+		$handles = array_merge(
+			$handles,
+			$this->_get_defer_handles(),
+			$this->_get_async_handles()
+		);
+
+		if ( ! $handles ) {
+			return;
+		}
+
+		$scripts = wp_scripts();
+
+		foreach ( $handles as $handle ) {
+			if ( isset( $scripts->registered[ $handle ] ) ) {
+				if ( ! empty( $scripts->registered[ $handle ]->extra['group'] ) ) {
+					$scripts->registered[ $handle ]->extra['group'] = 0;
+				}
+			}
 		}
 	}
 
@@ -30,9 +131,15 @@ class Assets {
 	 * @return string
 	 */
 	public function _set_defer( $tag, $handle, $src ) {
-		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_defer_scripts', [] );
+		if ( ! $this->_get_defer_handles() ) {
+			return $tag;
+		}
 
-		if ( ! in_array( $handle, $handles ) ) {
+		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
+			return $tag;
+		}
+
+		if ( ! in_array( $handle, $this->_get_defer_handles() ) ) {
 			return $tag;
 		}
 
@@ -48,9 +155,15 @@ class Assets {
 	 * @return string
 	 */
 	public function _set_async( $tag, $handle, $src ) {
-		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_async_scripts', [] );
+		if ( ! $this->_get_async_handles() ) {
+			return $tag;
+		}
 
-		if ( ! in_array( $handle, $handles ) ) {
+		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
+			return $tag;
+		}
+
+		if ( ! in_array( $handle, $this->_get_async_handles() ) ) {
 			return $tag;
 		}
 
@@ -68,6 +181,9 @@ class Assets {
 	 */
 	public function _builded( $tag, $handle, $src ) {
 		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_builded_scripts', [] );
+		if ( ! $handles ) {
+			return $tag;
+		}
 
 		if ( ! in_array( $handle, $handles ) ) {
 			return $tag;
@@ -169,32 +285,29 @@ document.head.appendChild(s);
 	}
 
 	/**
-	 * Optimize jQuery loading
+	 * Return defer script handles
 	 *
-	 * jQuery loads in footer and Invalidate jquery-migrate
-	 *
-	 * @return void
+	 * @return array
 	 */
-	public function _optimize_jquery_loading() {
-		$optimize_loading = apply_filters( 'inc2734_wp_page_speed_optimization_optimize_jquery_loading', false );
-		if ( ! $optimize_loading ) {
-			return;
-		}
+	protected function _is_optimize_jquery_loading() {
+		return apply_filters( 'inc2734_wp_page_speed_optimization_optimize_jquery_loading', false );
+	}
 
-		if ( is_admin() || in_array( $GLOBALS['pagenow'], [ 'wp-login.php', 'wp-register.php' ] ) ) {
-			return;
-		}
+	/**
+	 * Return defer script handles
+	 *
+	 * @return array
+	 */
+	protected function _get_defer_handles() {
+		return apply_filters( 'inc2734_wp_page_speed_optimization_defer_scripts', [] );
+	}
 
-		global $wp_scripts;
-
-		$jquery = $wp_scripts->registered['jquery-core'];
-		$jquery_ver = $jquery->ver;
-		$jquery_src = $jquery->src;
-
-		wp_deregister_script( 'jquery' );
-		wp_deregister_script( 'jquery-core' );
-
-		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver, true );
-		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver, true );
+	/**
+	 * Return async script handles
+	 *
+	 * @return array
+	 */
+	protected function _get_async_handles() {
+		return apply_filters( 'inc2734_wp_page_speed_optimization_async_scripts', [] );
 	}
 }
