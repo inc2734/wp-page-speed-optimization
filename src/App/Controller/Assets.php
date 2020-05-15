@@ -20,6 +20,10 @@ class Assets {
 	];
 
 	public function __construct() {
+		if ( is_admin() ) {
+			return;
+		}
+
 		add_action( 'wp_head', [ $this, '_optimize_jquery_loading' ], 2 );
 		add_filter( 'script_loader_tag', [ $this, '_set_defer_jquery_depend' ], 10, 3 );
 
@@ -28,11 +32,8 @@ class Assets {
 		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 10, 3 );
 
 		add_filter( 'script_loader_tag', [ $this, '_builded' ], 10, 3 );
-
-		if ( ! is_admin() ) {
-			add_filter( 'style_loader_tag', [ $this, '_set_preload_stylesheet' ], 10, 3 );
-			add_action( 'wp_footer', [ $this, '_build_stylesheet_link' ], 99999 );
-		}
+		add_filter( 'style_loader_tag', [ $this, '_set_preload_stylesheet' ], 10, 3 );
+		add_action( 'wp_footer', [ $this, '_build_stylesheet_link' ], 99999 );
 	}
 
 	/**
