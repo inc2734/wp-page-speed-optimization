@@ -60,12 +60,17 @@ class Assets {
 
 		wp_deregister_script( 'jquery' );
 		wp_deregister_script( 'jquery-core' );
-		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver, true );
-		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver, true );
+		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver );
+		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver );
 
 		foreach ( $scripts->registered as $handle => $dependency ) {
 			if ( in_array( 'jquery', $dependency->deps ) ) {
 				$this->jquery_depend_handles[ $handle ] = $handle;
+
+				$scripts->registered[ $handle ]->args = null;
+				if ( isset( $scripts->registered[ $handle ]->extra['group'] ) ) {
+					unset( $scripts->registered[ $handle ]->extra['group'] );
+				}
 			}
 		}
 	}
@@ -87,11 +92,23 @@ class Assets {
 			return $tag;
 		}
 
-		if ( ! in_array( $handle, $this->jquery_depend_handles ) ) {
+		$scripts = wp_scripts();
+		$in_deps = false;
+		foreach ( $scripts->registered[ $handle ]->deps as $deps_handle ) {
+			if ( in_array( $deps_handle, $this->jquery_depend_handles ) ) {
+				$in_deps = true;
+				break;
+			}
+		}
+
+		// $handle is included in $this->jquery_depend_handles
+		// One of the $handle deps is included in $this->jquery_depend_handles
+		if ( ! in_array( $handle, $this->jquery_depend_handles ) && ! $in_deps ) {
 			return $tag;
 		}
 
 		$this->jquery_depend_handles[ $handle ] = $handle;
+
 		return str_replace( ' src', ' defer src', $tag );
 	}
 
@@ -116,8 +133,9 @@ class Assets {
 
 		foreach ( $handles as $handle ) {
 			if ( isset( $scripts->registered[ $handle ] ) ) {
-				if ( ! empty( $scripts->registered[ $handle ]->extra['group'] ) ) {
-					$scripts->registered[ $handle ]->extra['group'] = 0;
+				$scripts->registered[ $handle ]->args = null;
+				if ( isset( $scripts->registered[ $handle ]->extra['group'] ) ) {
+					unset( $scripts->registered[ $handle ]->extra['group'] );
 				}
 			}
 		}
