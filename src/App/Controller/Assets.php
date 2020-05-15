@@ -9,25 +9,13 @@ namespace Inc2734\WP_Page_Speed_Optimization\App\Controller;
 
 class Assets {
 
-	/**
-	 * The handle of scripts that depends on jQuery
-	 *
-	 * @var array
-	 */
-	protected $jquery_depend_handles = [
-		'jquery'      => 'jquery',
-		'jquery-core' => 'jquery-core',
-	];
-
 	public function __construct() {
 		if ( is_admin() ) {
 			return;
 		}
 
 		add_action( 'wp_head', [ $this, '_optimize_jquery_loading' ], 2 );
-		add_filter( 'script_loader_tag', [ $this, '_set_defer_jquery_depend' ], 10, 3 );
-
-		add_action( 'wp_head', [ $this, '_update_in_footer' ], 2 );
+		add_action( 'wp_head', [ $this, '_optimize_snow_monkey_scripts' ], 2 );
 		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 10, 3 );
 		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 10, 3 );
 
@@ -48,13 +36,11 @@ class Assets {
 			return;
 		}
 
-		if ( is_admin() || in_array( $GLOBALS['pagenow'], [ 'wp-login.php', 'wp-register.php' ] ) ) {
+		if ( in_array( $GLOBALS['pagenow'], [ 'wp-login.php', 'wp-register.php' ] ) ) {
 			return;
 		}
 
-		$scripts = wp_scripts();
-
-		$jquery = $scripts->registered['jquery-core'];
+		$jquery = wp_scripts()->query( 'jquery-core', 'registered' );
 		$jquery_ver = $jquery->ver;
 		$jquery_src = $jquery->src;
 
@@ -62,54 +48,55 @@ class Assets {
 		wp_deregister_script( 'jquery-core' );
 		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver );
 		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver );
+		wp_scripts()->add_data( 'jquery', 'defer', true );
+		wp_scripts()->add_data( 'jquery-core', 'defer', true );
 
-		foreach ( $scripts->registered as $handle => $dependency ) {
-			if ( in_array( 'jquery', $dependency->deps ) ) {
-				$this->jquery_depend_handles[ $handle ] = $handle;
-
-				$scripts->registered[ $handle ]->args = null;
-				if ( isset( $scripts->registered[ $handle ]->extra['group'] ) ) {
-					unset( $scripts->registered[ $handle ]->extra['group'] );
+		// $handle is included in $this->maybe_add_defer_handles
+		// One of the $handle deps is included in $this->maybe_add_defer_handles
+		foreach ( wp_scripts()->queue as $handle ) {
+			$dependency = wp_scripts()->query( $handle, 'registered' );
+			if ( in_array( 'jquery', $dependency->deps ) || in_array( 'jquery-core', $dependency->deps ) ) {
+				if ( wp_scripts()->get_data( $handle, 'after' ) ) {
+					wp_scripts()->add_data( 'jquery', 'defer', false );
+					wp_scripts()->add_data( 'jquery-core', 'defer', false );
+					continue;
 				}
-			}
-		}
-	}
 
-	/**
-	 * Set defer for scripts that depends on jQuery
-	 *
-	 * @param string $tag
-	 * @param string handle
-	 * @param string src
-	 * @return string
-	 */
-	public function _set_defer_jquery_depend( $tag, $handle, $src ) {
-		if ( ! $this->_is_optimize_jquery_loading() ) {
-			return $tag;
-		}
+				wp_scripts()->add_data( $handle, 'defer', true );
 
-		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
-			return $tag;
-		}
-
-		$scripts = wp_scripts();
-		$in_deps = false;
-		foreach ( $scripts->registered[ $handle ]->deps as $deps_handle ) {
-			if ( in_array( $deps_handle, $this->jquery_depend_handles ) ) {
-				$in_deps = true;
-				break;
+				// Remove in_footer
+				$dependency->args = null;
+				wp_scripts()->add_data( $handle, 'group', null );
 			}
 		}
 
-		// $handle is included in $this->jquery_depend_handles
-		// One of the $handle deps is included in $this->jquery_depend_handles
-		if ( ! in_array( $handle, $this->jquery_depend_handles ) && ! $in_deps ) {
-			return $tag;
-		}
+		add_filter(
+			'script_loader_tag',
+			function( $tag, $handle ) {
+				$dependency = wp_scripts()->query( $handle, 'registered' );
 
-		$this->jquery_depend_handles[ $handle ] = $handle;
+				foreach ( $dependency->deps as $deps_handle ) {
+					if ( wp_scripts()->get_data( $handle, 'after' ) ) {
+						wp_scripts()->add_data( 'jquery', 'defer', false );
+						wp_scripts()->add_data( 'jquery-core', 'defer', false );
+						continue;
+					}
 
-		return str_replace( ' src', ' defer src', $tag );
+					$deps_dependency = wp_scripts()->query( $deps_handle, 'registered' );
+					if ( in_array( 'jquery', $deps_dependency->deps )
+						|| in_array( 'jquery-core', $deps_dependency->deps )
+						|| wp_scripts()->get_data( $deps_handle, 'defer' )
+						|| wp_scripts()->get_data( $deps_handle, 'async' )
+					) {
+						wp_scripts()->add_data( $handle, 'defer', true );
+					}
+				}
+
+				return $tag;
+			},
+			9,
+			2
+		);
 	}
 
 	/**
@@ -117,10 +104,8 @@ class Assets {
 	 *
 	 * @return void
 	 */
-	public function _update_in_footer() {
-		$handles = [];
+	public function _optimize_snow_monkey_scripts() {
 		$handles = array_merge(
-			$handles,
 			$this->_get_defer_handles(),
 			$this->_get_async_handles()
 		);
@@ -129,15 +114,21 @@ class Assets {
 			return;
 		}
 
-		$scripts = wp_scripts();
-
 		foreach ( $handles as $handle ) {
-			if ( isset( $scripts->registered[ $handle ] ) ) {
-				$scripts->registered[ $handle ]->args = null;
-				if ( isset( $scripts->registered[ $handle ]->extra['group'] ) ) {
-					unset( $scripts->registered[ $handle ]->extra['group'] );
-				}
+			$dependency = wp_scripts()->query( $handle, 'registered' );
+			if ( $dependency ) {
+				// Remove in_footer
+				$dependency->args = null;
+				wp_scripts()->add_data( $handle, 'group', null );
 			}
+		}
+
+		foreach ( $this->_get_defer_handles() as $handle ) {
+			wp_scripts()->add_data( $handle, 'defer', true );
+		}
+
+		foreach ( $this->_get_async_handles() as $handle ) {
+			wp_scripts()->add_data( $handle, 'async', true );
 		}
 	}
 
@@ -150,15 +141,11 @@ class Assets {
 	 * @return string
 	 */
 	public function _set_defer( $tag, $handle, $src ) {
-		if ( ! $this->_get_defer_handles() ) {
-			return $tag;
-		}
-
 		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
 			return $tag;
 		}
 
-		if ( ! in_array( $handle, $this->_get_defer_handles() ) ) {
+		if ( ! wp_scripts()->get_data( $handle, 'defer' ) ) {
 			return $tag;
 		}
 
@@ -174,15 +161,11 @@ class Assets {
 	 * @return string
 	 */
 	public function _set_async( $tag, $handle, $src ) {
-		if ( ! $this->_get_async_handles() ) {
-			return $tag;
-		}
-
 		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
 			return $tag;
 		}
 
-		if ( ! in_array( $handle, $this->_get_async_handles() ) ) {
+		if ( ! wp_scripts()->get_data( $handle, 'async' ) ) {
 			return $tag;
 		}
 
