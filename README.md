@@ -38,6 +38,9 @@ add_filter( 'inc2734_wp_page_speed_optimization_async_scripts', function( $handl
 ```
 
 ### Optimize jQuery loading
+
+Load jQuery and other scripts as defer + head as much as possible.
+
 ```
 add_filter( 'inc2734_wp_page_speed_optimization_optimize_jquery_loading', '__return_true' );
 ```

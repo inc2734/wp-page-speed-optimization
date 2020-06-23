@@ -10,7 +10,7 @@ namespace Inc2734\WP_Page_Speed_Optimization\App\Controller;
 class Assets {
 
 	public function __construct() {
-		if ( is_admin() ) {
+		if ( is_admin() || is_customize_preview() ) {
 			return;
 		}
 
@@ -51,52 +51,17 @@ class Assets {
 		wp_scripts()->add_data( 'jquery', 'defer', true );
 		wp_scripts()->add_data( 'jquery-core', 'defer', true );
 
-		// $handle is included in $this->maybe_add_defer_handles
-		// One of the $handle deps is included in $this->maybe_add_defer_handles
-		foreach ( wp_scripts()->queue as $handle ) {
-			$dependency = wp_scripts()->query( $handle, 'registered' );
-			if ( in_array( 'jquery', $dependency->deps ) || in_array( 'jquery-core', $dependency->deps ) ) {
-				if ( wp_scripts()->get_data( $handle, 'after' ) ) {
-					wp_scripts()->add_data( 'jquery', 'defer', false );
-					wp_scripts()->add_data( 'jquery-core', 'defer', false );
-					continue;
-				}
-
-				wp_scripts()->add_data( $handle, 'defer', true );
-
-				// Remove in_footer
-				$dependency->args = null;
-				wp_scripts()->add_data( $handle, 'group', null );
+		foreach ( wp_scripts()->registered as $dependency ) {
+			if ( wp_scripts()->get_data( $dependency->handle, 'after' ) ) {
+				continue;
 			}
+
+			if ( wp_scripts()->get_data( $dependency->handle, 'async' ) ) {
+				continue;
+			}
+
+			wp_scripts()->add_data( $dependency->handle, 'defer', true );
 		}
-
-		add_filter(
-			'script_loader_tag',
-			function( $tag, $handle ) {
-				$dependency = wp_scripts()->query( $handle, 'registered' );
-
-				foreach ( $dependency->deps as $deps_handle ) {
-					if ( wp_scripts()->get_data( $handle, 'after' ) ) {
-						wp_scripts()->add_data( 'jquery', 'defer', false );
-						wp_scripts()->add_data( 'jquery-core', 'defer', false );
-						continue;
-					}
-
-					$deps_dependency = wp_scripts()->query( $deps_handle, 'registered' );
-					if ( in_array( 'jquery', $deps_dependency->deps )
-						|| in_array( 'jquery-core', $deps_dependency->deps )
-						|| wp_scripts()->get_data( $deps_handle, 'defer' )
-						|| wp_scripts()->get_data( $deps_handle, 'async' )
-					) {
-						wp_scripts()->add_data( $handle, 'defer', true );
-					}
-				}
-
-				return $tag;
-			},
-			9,
-			2
-		);
 	}
 
 	/**
@@ -149,6 +114,10 @@ class Assets {
 			return $tag;
 		}
 
+		if ( wp_scripts()->get_data( $handle, 'after' ) ) {
+			return $tag;
+		}
+
 		return str_replace( ' src', ' defer src', $tag );
 	}
 
@@ -166,6 +135,10 @@ class Assets {
 		}
 
 		if ( ! wp_scripts()->get_data( $handle, 'async' ) ) {
+			return $tag;
+		}
+
+		if ( wp_scripts()->get_data( $handle, 'after' ) ) {
 			return $tag;
 		}
 
