@@ -48,19 +48,51 @@ class Assets {
 		wp_deregister_script( 'jquery-core' );
 		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver );
 		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver );
-		wp_scripts()->add_data( 'jquery', 'defer', true );
-		wp_scripts()->add_data( 'jquery-core', 'defer', true );
 
-		foreach ( wp_scripts()->registered as $dependency ) {
-			if ( wp_scripts()->get_data( $dependency->handle, 'after' ) ) {
+		$has_after_handles    = [];
+		$all_enqueued_handles = [];
+		foreach ( wp_scripts()->queue as $handle ) {
+			$dependency = wp_scripts()->query( $handle, 'registered' );
+			if ( wp_scripts()->get_data( $handle, 'after' ) ) {
+				$has_after_handles[] = $handle;
+			} else {
+				$has_after_dep_handle = false;
+				foreach ( $dependency->deps as $dep_handle ) {
+					$dependency = wp_scripts()->query( $handle, 'registered' );
+					if ( wp_scripts()->get_data( $handle, 'after' ) ) {
+						$has_after_dep_handle = true;
+						$has_after_handles[] = $dep_handle;
+					}
+				}
+				if ( ! $has_after_dep_handle ) {
+					$all_enqueued_handles[] = $handle;
+					$all_enqueued_handles = array_merge( $all_enqueued_handles, $dependency->deps );
+				}
+			}
+		}
+		$has_after_handles    = array_unique( $has_after_handles );
+		$all_enqueued_handles = array_unique( $all_enqueued_handles );
+
+		if ( ! $has_after_handles ) {
+			wp_scripts()->add_data( 'jquery', 'defer', true );
+			wp_scripts()->add_data( 'jquery-core', 'defer', true );
+		}
+
+		foreach ( $all_enqueued_handles as $handle ) {
+			if ( wp_scripts()->get_data( $handle, 'after' ) ) {
 				continue;
 			}
 
-			if ( wp_scripts()->get_data( $dependency->handle, 'async' ) ) {
+			if ( wp_scripts()->get_data( $handle, 'async' ) ) {
 				continue;
 			}
 
-			wp_scripts()->add_data( $dependency->handle, 'defer', true );
+			wp_scripts()->add_data( $handle, 'defer', true );
+
+			// Remove in_footer
+			$dependency = wp_scripts()->query( $handle, 'registered' );
+			$dependency->args = null;
+			wp_scripts()->add_data( $handle, 'group', null );
 		}
 	}
 
