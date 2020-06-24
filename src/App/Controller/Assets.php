@@ -16,8 +16,8 @@ class Assets {
 
 		add_action( 'wp_head', [ $this, '_optimize_jquery_loading' ], 2 );
 		add_action( 'wp_head', [ $this, '_optimize_snow_monkey_scripts' ], 2 );
-		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 10, 3 );
-		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 10, 3 );
+		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 11, 3 );
+		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 11, 3 );
 
 		add_filter( 'script_loader_tag', [ $this, '_builded' ], 10, 3 );
 		add_filter( 'style_loader_tag', [ $this, '_set_preload_stylesheet' ], 10, 3 );
