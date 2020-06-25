@@ -7,6 +7,8 @@
 
 namespace Inc2734\WP_Page_Speed_Optimization\App\Controller;
 
+use Inc2734\WP_Page_Speed_Optimization\App\Model\Defer_Scripts;
+
 class Assets {
 
 	public function __construct() {
@@ -14,7 +16,12 @@ class Assets {
 			return;
 		}
 
+		// wp_enqueue_scripts hook is called in wp_head:1
 		add_action( 'wp_head', [ $this, '_optimize_jquery_loading' ], 2 );
+
+		// Printing footer scripts in wp_print_footer_scripts:10
+		add_action( 'wp_print_footer_scripts', [ $this, '_optimize_jquery_loading_for_footer' ], 9 );
+
 		add_action( 'wp_head', [ $this, '_optimize_snow_monkey_scripts' ], 2 );
 		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 11, 3 );
 		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 11, 3 );
@@ -25,9 +32,7 @@ class Assets {
 	}
 
 	/**
-	 * Optimize jQuery loading
-	 *
-	 * jQuery loads in footer and Invalidate jquery-migrate
+	 * Add defer to script
 	 *
 	 * @return void
 	 */
@@ -49,36 +54,10 @@ class Assets {
 		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver );
 		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver );
 
-		$has_after_handles    = [];
-		$all_enqueued_handles = [];
-		foreach ( wp_scripts()->queue as $handle ) {
-			$dependency = wp_scripts()->query( $handle, 'registered' );
-			if ( wp_scripts()->get_data( $handle, 'after' ) ) {
-				$has_after_handles[] = $handle;
-			} else {
-				$has_after_dep_handle = false;
-				foreach ( $dependency->deps as $dep_handle ) {
-					$dependency = wp_scripts()->query( $handle, 'registered' );
-					if ( wp_scripts()->get_data( $handle, 'after' ) ) {
-						$has_after_dep_handle = true;
-						$has_after_handles[] = $dep_handle;
-					}
-				}
-				if ( ! $has_after_dep_handle ) {
-					$all_enqueued_handles[] = $handle;
-					$all_enqueued_handles = array_merge( $all_enqueued_handles, $dependency->deps );
-				}
-			}
-		}
-		$has_after_handles    = array_unique( $has_after_handles );
-		$all_enqueued_handles = array_unique( $all_enqueued_handles );
+		$defer_scripts = new Defer_Scripts();
+		$handles       = $defer_scripts->get();
 
-		if ( ! $has_after_handles ) {
-			wp_scripts()->add_data( 'jquery', 'defer', true );
-			wp_scripts()->add_data( 'jquery-core', 'defer', true );
-		}
-
-		foreach ( $all_enqueued_handles as $handle ) {
+		foreach ( $handles as $handle ) {
 			if ( wp_scripts()->get_data( $handle, 'after' ) ) {
 				continue;
 			}
@@ -93,6 +72,32 @@ class Assets {
 			$dependency = wp_scripts()->query( $handle, 'registered' );
 			$dependency->args = null;
 			wp_scripts()->add_data( $handle, 'group', null );
+		}
+	}
+
+	/**
+	 * Add defer to script
+	 *
+	 * @return void
+	 */
+	public function _optimize_jquery_loading_for_footer() {
+		if ( ! $this->_is_optimize_jquery_loading() ) {
+			return;
+		}
+
+		$defer_scripts = new Defer_Scripts();
+		$handles       = $defer_scripts->get();
+
+		foreach ( $handles as $handle ) {
+			if ( wp_scripts()->get_data( $handle, 'after' ) ) {
+				continue;
+			}
+
+			if ( wp_scripts()->get_data( $handle, 'async' ) ) {
+				continue;
+			}
+
+			wp_scripts()->add_data( $handle, 'defer', true );
 		}
 	}
 
