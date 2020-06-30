@@ -70,8 +70,10 @@ class Assets {
 
 			// Remove in_footer
 			$dependency = wp_scripts()->query( $handle, 'registered' );
-			$dependency->args = null;
-			wp_scripts()->add_data( $handle, 'group', null );
+			if ( $dependency ) {
+				$dependency->args = null;
+				wp_scripts()->add_data( $handle, 'group', null );
+			}
 		}
 	}
 
@@ -117,9 +119,9 @@ class Assets {
 		}
 
 		foreach ( $handles as $handle ) {
+			// Remove in_footer
 			$dependency = wp_scripts()->query( $handle, 'registered' );
 			if ( $dependency ) {
-				// Remove in_footer
 				$dependency->args = null;
 				wp_scripts()->add_data( $handle, 'group', null );
 			}

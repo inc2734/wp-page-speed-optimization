@@ -41,8 +41,10 @@ class Defer_Scripts {
 		$this->handles = array_diff( $this->handles, [ $handle ] );
 		$this->after_dep_handles[] = $handle;
 		$dependency = wp_scripts()->query( $handle, 'registered' );
-		foreach ( $dependency->deps as $dep_handle ) {
-			$this->_remove( $dep_handle );
+		if ( is_array( $dependency->deps ) ) {
+			foreach ( $dependency->deps as $dep_handle ) {
+				$this->_remove( $dep_handle );
+			}
 		}
 	}
 
@@ -56,15 +58,19 @@ class Defer_Scripts {
 			$this->has_after_handles[] = $handle;
 			$this->has_after_handles   = array_unique( $this->has_after_handles );
 
-			foreach ( $dependency->deps as $dep_handle ) {
-				$this->_remove( $dep_handle );
+			if ( is_array( $dependency->deps ) ) {
+				foreach ( $dependency->deps as $dep_handle ) {
+					$this->_remove( $dep_handle );
+				}
 			}
 		} else {
 			$this->handles[] = $handle;
 			$this->handles   = array_unique( $this->handles );
 
-			foreach ( $dependency->deps as $dep_handle ) {
-				$this->_generate( $dep_handle );
+			if ( isset( $dependency->deps ) && is_array( $dependency->deps ) ) {
+				foreach ( $dependency->deps as $dep_handle ) {
+					$this->_generate( $dep_handle );
+				}
 			}
 		}
 	}
