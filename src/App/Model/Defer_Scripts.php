@@ -23,7 +23,7 @@ class Defer_Scripts {
 		$this->handles = array_diff( $this->handles, $this->after_dep_handles );
 
 		if ( $this->_is_sync_jquery() ) {
-			$this->handles = array_diff( $this->handles, [ 'jqyery', 'jquery-core' ] );
+			$this->handles = array_diff( $this->handles, [ 'jquery', 'jquery-core' ] );
 		}
 
 		$this->handles = array_diff( $this->handles, [ 'quicktags' ] );
