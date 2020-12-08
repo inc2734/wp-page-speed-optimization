@@ -9,14 +9,15 @@ namespace Inc2734\WP_Page_Speed_Optimization\App\Controller;
 
 class HTTP2_Server_Push {
 
+	/**
+	 * Constructor.
+	 */
 	public function __construct() {
 		add_action( 'send_headers', [ $this, '_http2_server_push' ], 99999 );
 	}
 
 	/**
-	 * Send header
-	 *
-	 * @return void
+	 * Send header.
 	 */
 	public function _http2_server_push() {
 		if ( headers_sent() ) {
@@ -33,11 +34,10 @@ class HTTP2_Server_Push {
 	}
 
 	/**
-	 * Send header
+	 * Send header.
 	 *
-	 * @param WP_Dependences $wp_dependences
-	 * @param string $type style|script
-	 * @return void
+	 * @param WP_Dependences $wp_dependences WP_Styles|WP_Scripts instance.
+	 * @param string         $type           style|script.
 	 */
 	protected function _send_http2_server_push_header( $wp_dependences, $type ) {
 		global $wp_version;

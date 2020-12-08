@@ -8,10 +8,10 @@
 namespace Inc2734\WP_Page_Speed_Optimization\Helper;
 
 /**
- * Write ache control setting into .htaccess
+ * Write cache control setting into .htaccess.
  *
- * @param bool $enable
- * @return int|false bytes
+ * @param bool $enable Wether true if you want to enable it.
+ * @return int|false bytes.
  */
 function write_cache_control_setting( $enable ) {
 	if ( ! function_exists( 'get_home_path' ) ) {
@@ -26,6 +26,7 @@ function write_cache_control_setting( $enable ) {
 	}
 
 	if ( $enable ) {
+		$rules   = [];
 		$rules[] = '<ifModule mod_expires.c>';
 		$rules[] = 'ExpiresActive On';
 		$rules[] = '<FilesMatch "\.(css|js)$">';

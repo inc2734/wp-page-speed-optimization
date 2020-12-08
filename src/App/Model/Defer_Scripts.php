@@ -9,11 +9,19 @@ namespace Inc2734\WP_Page_Speed_Optimization\App\Model;
 
 class Defer_Scripts {
 
+	/**
+	 * Handles to load defer.
+	 *
+	 * @var array
+	 */
 	protected $handles = [];
 
+	/**
+	 * Constructor.
+	 */
 	public function __construct() {
 		$all_handles = [];
-		$queue = array_diff( wp_scripts()->queue, wp_scripts()->done );
+		$queue       = array_diff( wp_scripts()->queue, wp_scripts()->done );
 		foreach ( $queue as $handle ) {
 			$all_handles = array_merge( $all_handles, $this->_generate( $handle ) );
 		}
@@ -24,8 +32,6 @@ class Defer_Scripts {
 		$has_after_handles_deps  = [];
 
 		foreach ( $all_handles as $handle ) {
-			$dependency = wp_scripts()->query( $handle, 'registered' );
-
 			if ( wp_scripts()->get_data( $handle, 'after' ) ) {
 				$has_after_handles[ $handle ] = $handle;
 
@@ -56,18 +62,30 @@ class Defer_Scripts {
 		}
 	}
 
+	/**
+	 * Return all handles.
+	 *
+	 * @return array
+	 */
 	public function get() {
 		return $this->handles;
 	}
 
+	/**
+	 * Remove deps handles.
+	 *
+	 * @param string $handle Name of the script. Should be unique.
+	 * @return array
+	 */
 	protected function _remove( $handle ) {
-		if ( in_array( $handle, $this->after_dep_handles ) ) {
+		if ( in_array( $handle, $this->after_dep_handles, true ) ) {
 			return;
 		}
 
-		$this->handles = array_diff( $this->handles, [ $handle ] );
+		$this->handles             = array_diff( $this->handles, [ $handle ] );
 		$this->after_dep_handles[] = $handle;
-		$dependency = wp_scripts()->query( $handle, 'registered' );
+		$dependency                = wp_scripts()->query( $handle, 'registered' );
+
 		if ( is_array( $dependency->deps ) ) {
 			foreach ( $dependency->deps as $dep_handle ) {
 				$this->_remove( $dep_handle );
@@ -75,6 +93,12 @@ class Defer_Scripts {
 		}
 	}
 
+	/**
+	 * Generate deps handles.
+	 *
+	 * @param string $handle Name of the script. Should be unique.
+	 * @return array
+	 */
 	protected function _get_deps( $handle ) {
 		$dependency = wp_scripts()->query( $handle, 'registered' );
 		if ( ! isset( $dependency->deps ) || ! is_array( $dependency->deps ) ) {
@@ -84,10 +108,17 @@ class Defer_Scripts {
 		return $dependency->deps;
 	}
 
+	/**
+	 * Generate related handles.
+	 *
+	 * @param string $handle Name of the script. Should be unique.
+	 * @return array
+	 */
 	protected function _generate( $handle ) {
-		$all_handles = [];
+		$all_handles            = [];
 		$all_handles[ $handle ] = $handle;
-		$deps = $this->_get_deps( $handle );
+		$deps                   = $this->_get_deps( $handle );
+
 		foreach ( $deps as $dep_handle ) {
 			$all_handles = array_merge( $all_handles, $this->_generate( $dep_handle ) );
 		}
@@ -114,7 +145,8 @@ class Defer_Scripts {
 				bbp_is_topic_edit(),
 				bbp_is_forum_archive(),
 			];
-			if ( bbp_use_wp_editor() && in_array( true, array_filter( $has_form_page ) ) ) {
+
+			if ( bbp_use_wp_editor() && in_array( true, array_filter( $has_form_page ), true ) ) {
 				return true;
 			}
 		}

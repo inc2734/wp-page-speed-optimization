@@ -1,6 +1,6 @@
 # WP Page Speed Optimization
 
-[![Build Status](https://travis-ci.org/inc2734/wp-page-speed-optimization.svg?branch=master)](https://travis-ci.org/inc2734/wp-page-speed-optimization)
+![CI](https://github.com/inc2734/wp-page-speed-optimization/workflows/CI/badge.svg)
 [![Latest Stable Version](https://poser.pugx.org/inc2734/wp-page-speed-optimization/v/stable)](https://packagist.org/packages/inc2734/wp-page-speed-optimization)
 [![License](https://poser.pugx.org/inc2734/wp-page-speed-optimization/license)](https://packagist.org/packages/inc2734/wp-page-speed-optimization)
 

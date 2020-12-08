@@ -11,6 +11,9 @@ use Inc2734\WP_Page_Speed_Optimization\App\Model\Defer_Scripts;
 
 class Assets {
 
+	/**
+	 * Constructor.
+	 */
 	public function __construct() {
 		if ( is_admin() || is_customize_preview() ) {
 			return;
@@ -23,8 +26,8 @@ class Assets {
 		add_action( 'wp_print_footer_scripts', [ $this, '_optimize_jquery_loading_for_footer' ], 9 );
 
 		add_action( 'wp_head', [ $this, '_optimize_snow_monkey_scripts' ], 2 );
-		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 11, 3 );
-		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 11, 3 );
+		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 11, 2 );
+		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 11, 2 );
 
 		add_filter( 'script_loader_tag', [ $this, '_builded' ], 10, 3 );
 		add_filter( 'style_loader_tag', [ $this, '_set_preload_stylesheet' ], 10, 3 );
@@ -32,20 +35,18 @@ class Assets {
 	}
 
 	/**
-	 * Add defer to script
-	 *
-	 * @return void
+	 * Add defer to script.
 	 */
 	public function _optimize_jquery_loading() {
 		if ( ! $this->_is_optimize_jquery_loading() ) {
 			return;
 		}
 
-		if ( in_array( $GLOBALS['pagenow'], [ 'wp-login.php', 'wp-register.php' ] ) ) {
+		if ( in_array( $GLOBALS['pagenow'], [ 'wp-login.php', 'wp-register.php' ], true ) ) {
 			return;
 		}
 
-		$jquery = wp_scripts()->query( 'jquery-core', 'registered' );
+		$jquery     = wp_scripts()->query( 'jquery-core', 'registered' );
 		$jquery_ver = $jquery->ver;
 		$jquery_src = $jquery->src;
 
@@ -78,9 +79,7 @@ class Assets {
 	}
 
 	/**
-	 * Add defer to script
-	 *
-	 * @return void
+	 * Add defer to script.
 	 */
 	public function _optimize_jquery_loading_for_footer() {
 		if ( ! $this->_is_optimize_jquery_loading() ) {
@@ -104,9 +103,7 @@ class Assets {
 	}
 
 	/**
-	 * defer/async script move to head
-	 *
-	 * @return void
+	 * defer/async script move to head.
 	 */
 	public function _optimize_snow_monkey_scripts() {
 		$handles = array_merge(
@@ -137,14 +134,13 @@ class Assets {
 	}
 
 	/**
-	 * Set defer
+	 * Set defer.
 	 *
-	 * @param string $tag
-	 * @param string handle
-	 * @param string src
+	 * @param string $tag    The link tag for the enqueued style.
+	 * @param string $handle The style's registered handle.
 	 * @return string
 	 */
-	public function _set_defer( $tag, $handle, $src ) {
+	public function _set_defer( $tag, $handle ) {
 		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
 			return $tag;
 		}
@@ -161,14 +157,13 @@ class Assets {
 	}
 
 	/**
-	 * Set async
+	 * Set async.
 	 *
-	 * @param string $tag
-	 * @param string handle
-	 * @param string src
+	 * @param string $tag    The link tag for the enqueued style.
+	 * @param string $handle The style's registered handle.
 	 * @return string
 	 */
-	public function _set_async( $tag, $handle, $src ) {
+	public function _set_async( $tag, $handle ) {
 		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
 			return $tag;
 		}
@@ -185,12 +180,12 @@ class Assets {
 	}
 
 	/**
-	 * Re-build script tag
-	 * only in_footer param is true
+	 * Re-build script tag.
+	 * only in_footer param is true.
 	 *
-	 * @param string $tag
-	 * @param string handle
-	 * @param string src
+	 * @param string $tag    The link tag for the enqueued style.
+	 * @param string $handle The style's registered handle.
+	 * @param string $src    The stylesheet's source URL.
 	 * @return string
 	 */
 	public function _builded( $tag, $handle, $src ) {
@@ -199,7 +194,7 @@ class Assets {
 			return $tag;
 		}
 
-		if ( ! in_array( $handle, $handles ) ) {
+		if ( ! in_array( $handle, $handles, true ) ) {
 			return $tag;
 		}
 
@@ -216,16 +211,16 @@ class Assets {
 	}
 
 	/**
-	 * Set rel="preload" for stylesheet
+	 * Set rel="preload" for stylesheet.
 	 *
-	 * @param string $tag
-	 * @param string handle
-	 * @param string src
+	 * @param string $tag    The link tag for the enqueued style.
+	 * @param string $handle The style's registered handle.
+	 * @param string $src    The stylesheet's source URL.
 	 * @return string
 	 */
 	public function _set_preload_stylesheet( $tag, $handle, $src ) {
 		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_output_head_styles', [] );
-		if ( in_array( $handle, $handles ) && 0 === strpos( $src, site_url() ) ) {
+		if ( in_array( $handle, $handles, true ) && 0 === strpos( $src, site_url() ) ) {
 			$sitepath = site_url( '', 'relative' );
 			$abspath  = untrailingslashit( ABSPATH );
 
@@ -256,7 +251,7 @@ class Assets {
 		}
 
 		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', [] );
-		if ( in_array( $handle, $handles ) ) {
+		if ( in_array( $handle, $handles, true ) ) {
 			?>
 			<!-- <?php echo $tag; // xss ok. ?> -->
 			<?php
@@ -271,9 +266,7 @@ class Assets {
 	}
 
 	/**
-	 * Builed stylesheet link tag
-	 *
-	 * @return void
+	 * Builed stylesheet link tag.
 	 */
 	public function _build_stylesheet_link() {
 		if ( ! apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', [] ) ) {
@@ -299,7 +292,7 @@ document.head.appendChild(s);
 	}
 
 	/**
-	 * Return defer script handles
+	 * Return defer script handles.
 	 *
 	 * @return array
 	 */
@@ -308,7 +301,7 @@ document.head.appendChild(s);
 	}
 
 	/**
-	 * Return defer script handles
+	 * Return defer script handles.
 	 *
 	 * @return array
 	 */
@@ -317,7 +310,7 @@ document.head.appendChild(s);
 	}
 
 	/**
-	 * Return async script handles
+	 * Return async script handles.
 	 *
 	 * @return array
 	 */

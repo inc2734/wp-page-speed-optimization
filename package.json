@@ -2,21 +2,27 @@
   "author": "inc2734",
   "license": "GPL-2.0+",
   "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@babel/preset-env": "^7.9.6",
     "@inc2734/for-each-html-nodes": "^0.4.0",
-    "babel-loader": "^8.1.0",
+    "@wordpress/env": "^2.1.0",
+    "@wordpress/scripts": "^12.5.0",
     "npm-run-all": "^4.1.5",
-    "rimraf": "^3.0.2",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "rimraf": "^3.0.2"
   },
   "scripts": {
+    "wp-env": "wp-env",
+    "start": "wp-env start",
+    "stop": "wp-env stop",
+    "cli": "wp-env run cli",
+    "wp": "wp-env run cli wp",
+    "pretest": "wp-env start && wp-env run composer 'install --no-interaction'",
+    "test:lint:php": "wp-env run composer run-script lint",
+    "test:lint": "run-s test:lint:*",
+    "test:unit:php": "wp-env run phpunit 'phpunit -c /var/www/html/wp-content/plugins/wp-page-speed-optimization/.phpunit.xml.dist --verbose'",
+    "test:unit": "run-s test:unit:*",
+    "test": "run-s test:*",
     "clean:js": "rimraf src/assets/js",
-    "js:prefetch": "webpack src/src/js/prefetch.js -o src/assets/js/prefetch.js --config webpack.config.js",
+    "js:prefetch": "wp-scripts build src/src/js/prefetch --output-path=src/assets/js",
     "js": "npm-run-all -p clean:js && npm-run-all -p js:*",
-    "start": "npm run build",
-    "build": "npm-run-all -p js",
-    "postinstall": "npm run build"
+    "build": "npm-run-all -p js"
   }
 }

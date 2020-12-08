@@ -9,18 +9,21 @@ namespace Inc2734\WP_Page_Speed_Optimization\App\Controller;
 
 class LazyLoad {
 
+	/**
+	 * Constructor.
+	 */
 	public function __construct() {
 		add_filter( 'wp_kses_allowed_html', [ $this, '_allow_decoding' ], 10, 2 );
 		add_filter( 'wp_kses_allowed_html', [ $this, '_allow_loading' ], 10, 2 );
 		add_filter( 'post_thumbnail_html', [ $this, '_async_thumbnail' ], 10 );
 		add_filter( 'post_thumbnail_html', [ $this, '_lazyload_thumbnail' ], 10 );
-		add_filter( 'wp_get_attachment_image_attributes', [ $this, '_async_attachment_images' ], 10, 3 );
+		add_filter( 'wp_get_attachment_image_attributes', [ $this, '_async_attachment_images' ] );
 		add_filter( 'the_content', [ $this, '_async_content_images' ] );
 		add_filter( 'the_content', [ $this, '_lazyload_content_images' ] );
 	}
 
 	/**
-	 * Return true when async attachment images
+	 * Return true when async attachment images.
 	 *
 	 * @return boolean
 	 */
@@ -29,7 +32,7 @@ class LazyLoad {
 	}
 
 	/**
-	 * Return true when async content images
+	 * Return true when async content images.
 	 *
 	 * @return boolean
 	 */
@@ -38,10 +41,10 @@ class LazyLoad {
 	}
 
 	/**
-	 * Allow img[decoding]
+	 * Allow img[decoding].
 	 *
-	 * @param array $tags
-	 * @param string $context
+	 * @param array  $tags    Context to judge allowed tags by.
+	 * @param string $context Context name.
 	 * @return array
 	 */
 	public function _allow_decoding( $tags, $context ) {
@@ -54,10 +57,10 @@ class LazyLoad {
 	}
 
 	/**
-	 * Allow img[loading]
+	 * Allow img[loading].
 	 *
-	 * @param array $tags
-	 * @param string $context
+	 * @param array  $tags    Context to judge allowed tags by.
+	 * @param string $context Context name.
 	 * @return array
 	 */
 	public function _allow_loading( $tags, $context ) {
@@ -70,9 +73,9 @@ class LazyLoad {
 	}
 
 	/**
-	 * Async decoding of custom thumbnail
+	 * Async decoding of custom thumbnail.
 	 *
-	 * @param string $html
+	 * @param string $html The post thumbnail HTML.
 	 * @return string
 	 */
 	public function _async_thumbnail( $html ) {
@@ -88,9 +91,9 @@ class LazyLoad {
 	}
 
 	/**
-	 * Lazyloade decoding of custom thumbnail
+	 * Lazyloade decoding of custom thumbnail.
 	 *
-	 * @param string $html
+	 * @param string $html The post thumbnail HTML.
 	 * @return string
 	 */
 	public function _lazyload_thumbnail( $html ) {
@@ -106,14 +109,12 @@ class LazyLoad {
 	}
 
 	/**
-	 * Aync decoding of attachment images
+	 * Aync decoding of attachment images.
 	 *
-	 * @param array $atts
-	 * @param WP_Post $attachment
-	 * @param string|array $size
+	 * @param array $atts Array of attribute values for the image markup, keyed by attribute name. See wp_get_attachment_image().
 	 * @return array
 	 */
-	public function _async_attachment_images( $atts, $attachment, $size ) {
+	public function _async_attachment_images( $atts ) {
 		if ( ! $this->_is_async_attachment_images() ) {
 			return $atts;
 		}
@@ -124,9 +125,9 @@ class LazyLoad {
 	}
 
 	/**
-	 * Aync decoding of content images
+	 * Aync decoding of content images.
 	 *
-	 * @param string $content
+	 * @param string $content The content.
 	 * @return string
 	 */
 	public function _async_content_images( $content ) {
@@ -147,16 +148,16 @@ class LazyLoad {
 
 		foreach ( $selected_images as $image ) {
 			$new_image = $this->_add_decoding_to_content_image( $image );
-			$content = str_replace( $image, $new_image, $content );
+			$content   = str_replace( $image, $new_image, $content );
 		}
 
 		return $content;
 	}
 
 	/**
-	 * Lazy loading of content images
+	 * Lazy loading of content images.
 	 *
-	 * @param string $content
+	 * @param string $content The content.
 	 * @return string
 	 */
 	public function _lazyload_content_images( $content ) {
@@ -177,16 +178,16 @@ class LazyLoad {
 
 		foreach ( $selected_images as $image ) {
 			$new_image = $this->_add_loading_to_content_image( $image );
-			$content = str_replace( $image, $new_image, $content );
+			$content   = str_replace( $image, $new_image, $content );
 		}
 
 		return $content;
 	}
 
 	/**
-	 * Add decoding to content image
+	 * Add decoding to content image.
 	 *
-	 * @param string $image
+	 * @param string $image The img tag.
 	 * @return string
 	 */
 	protected function _add_decoding_to_content_image( $image ) {
@@ -194,9 +195,9 @@ class LazyLoad {
 	}
 
 	/**
-	 * Add loading to content image
+	 * Add loading to content image.
 	 *
-	 * @param string $image
+	 * @param string $image The img tag.
 	 * @return string
 	 */
 	protected function _add_loading_to_content_image( $image ) {
