@@ -151,6 +151,19 @@ class Defer_Scripts {
 			}
 		}
 
+		if ( class_exists( 'WooCommerce' ) ) {
+			$handles = [
+				'wp-util',
+				'wc-add-to-cart-variation',
+			];
+
+			foreach ( $handles as $handle ) {
+				if ( wp_scripts()->query( $handle, 'registered' ) ) {
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
 }
