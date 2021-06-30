@@ -4,7 +4,7 @@
   "devDependencies": {
     "@inc2734/for-each-html-nodes": "^0.4.0",
     "@wordpress/env": "github:team-hamworks/wordpress-env",
-    "@wordpress/scripts": "^13.0.3",
+    "@wordpress/scripts": "^16.1.4",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2"
   },

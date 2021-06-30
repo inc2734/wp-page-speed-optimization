@@ -228,8 +228,21 @@ class Assets {
 				$abspath = preg_replace( '|(.*?)' . preg_quote( $sitepath ) . '$|', '$1', $abspath );
 			}
 
+			$target = $abspath . str_replace( site_url(), '', $src );
+			if ( false !== strpos( $target, '?' ) ) {
+				$exploded_target = explode( '?', $target );
+				$target          = $exploded_target[0];
+			}
+			if ( ! file_exists( $target ) ) {
+				return $tag;
+			}
+
+			$buffer = \file_get_contents( $target );
+			if ( ! $buffer ) {
+				return $tag;
+			}
+
 			$parse  = parse_url( $src );
-			$buffer = \file_get_contents( $abspath . $parse['path'] );
 			$buffer = preg_replace( '|(url\(\s*?[\'"]?)./|', '$1' . dirname( $parse['path'] ) . '/', $buffer );
 			$buffer = preg_replace( '|(url\(\s*?[\'"]?)../|', '$1' . dirname( $parse['path'] ) . '/../', $buffer );
 			$buffer = preg_replace( '|(url\(\s*?[\'"]?)//|', '$1/', $buffer );
