@@ -25,7 +25,7 @@ class Assets {
 		// Printing footer scripts in wp_print_footer_scripts:10
 		add_action( 'wp_print_footer_scripts', [ $this, '_optimize_jquery_loading_for_footer' ], 9 );
 
-		add_action( 'wp_head', [ $this, '_optimize_snow_monkey_scripts' ], 2 );
+		add_action( 'wp_head', [ $this, '_scripts_move_to_head' ], 2 );
 		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 11, 2 );
 		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 11, 2 );
 
@@ -105,7 +105,7 @@ class Assets {
 	/**
 	 * defer/async script move to head.
 	 */
-	public function _optimize_snow_monkey_scripts() {
+	public function _scripts_move_to_head() {
 		$handles = array_merge(
 			$this->_get_defer_handles(),
 			$this->_get_async_handles()
@@ -221,14 +221,8 @@ class Assets {
 	public function _set_preload_stylesheet( $tag, $handle, $src ) {
 		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_output_head_styles', [] );
 		if ( in_array( $handle, $handles, true ) && 0 === strpos( $src, site_url() ) ) {
-			$sitepath = site_url( '', 'relative' );
-			$abspath  = untrailingslashit( ABSPATH );
-
-			if ( $sitepath ) {
-				$abspath = preg_replace( '|(.*?)' . preg_quote( $sitepath ) . '$|', '$1', $abspath );
-			}
-
-			$target = $abspath . str_replace( site_url(), '', $src );
+			$abspath = untrailingslashit( ABSPATH );
+			$target  = $abspath . str_replace( site_url(), '', $src );
 			if ( false !== strpos( $target, '?' ) ) {
 				$exploded_target = explode( '?', $target );
 				$target          = $exploded_target[0];
