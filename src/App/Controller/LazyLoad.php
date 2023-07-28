@@ -13,13 +13,13 @@ class LazyLoad {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_filter( 'wp_kses_allowed_html', [ $this, '_allow_decoding' ], 10, 2 );
-		add_filter( 'wp_kses_allowed_html', [ $this, '_allow_loading' ], 10, 2 );
-		add_filter( 'post_thumbnail_html', [ $this, '_async_thumbnail' ], 10 );
-		add_filter( 'post_thumbnail_html', [ $this, '_lazyload_thumbnail' ], 10 );
-		add_filter( 'wp_get_attachment_image_attributes', [ $this, '_async_attachment_images' ] );
-		add_filter( 'the_content', [ $this, '_async_content_images' ] );
-		add_filter( 'the_content', [ $this, '_lazyload_content_images' ] );
+		add_filter( 'wp_kses_allowed_html', array( $this, '_allow_decoding' ), 10, 2 );
+		add_filter( 'wp_kses_allowed_html', array( $this, '_allow_loading' ), 10, 2 );
+		add_filter( 'post_thumbnail_html', array( $this, '_async_thumbnail' ), 10 );
+		add_filter( 'post_thumbnail_html', array( $this, '_lazyload_thumbnail' ), 10 );
+		add_filter( 'wp_get_attachment_image_attributes', array( $this, '_async_attachment_images' ) );
+		add_filter( 'the_content', array( $this, '_async_content_images' ) );
+		add_filter( 'the_content', array( $this, '_lazyload_content_images' ) );
 	}
 
 	/**
@@ -52,7 +52,7 @@ class LazyLoad {
 			return $tags;
 		}
 
-		$tags['img'] = array_merge( $tags['img'], [ 'decoding' => true ] );
+		$tags['img'] = array_merge( $tags['img'], array( 'decoding' => true ) );
 		return $tags;
 	}
 
@@ -68,7 +68,7 @@ class LazyLoad {
 			return $tags;
 		}
 
-		$tags['img'] = array_merge( $tags['img'], [ 'loading' => true ] );
+		$tags['img'] = array_merge( $tags['img'], array( 'loading' => true ) );
 		return $tags;
 	}
 
@@ -139,7 +139,7 @@ class LazyLoad {
 			return $content;
 		}
 
-		$selected_images = [];
+		$selected_images = array();
 		foreach ( $matches[0] as $image ) {
 			if ( false === strpos( $image, ' decoding=' ) && preg_match( '/wp-image-([0-9]+)/i', $image, $reg ) ) {
 				$selected_images[ $reg[1] ] = $image;
@@ -169,7 +169,7 @@ class LazyLoad {
 			return $content;
 		}
 
-		$selected_images = [];
+		$selected_images = array();
 		foreach ( $matches[0] as $image ) {
 			if ( false === strpos( $image, ' loading=' ) && preg_match( '/wp-image-([0-9]+)/i', $image, $reg ) ) {
 				$selected_images[ $reg[1] ] = $image;

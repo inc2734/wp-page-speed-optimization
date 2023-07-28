@@ -13,7 +13,7 @@ class HTTP2_Server_Push {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'send_headers', [ $this, '_http2_server_push' ], 99999 );
+		add_action( 'send_headers', array( $this, '_http2_server_push' ), 99999 );
 	}
 
 	/**

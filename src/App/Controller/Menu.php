@@ -13,11 +13,11 @@ class Menu {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'wp_update_nav_menu', [ $this, '_wp_update_nav_menu' ] );
-		add_filter( 'wp_nav_menu', [ $this, '_set_cache' ], 10, 2 );
-		add_filter( 'pre_wp_nav_menu', [ $this, '_pre_wp_nav_menu' ], 10, 2 );
-		add_action( 'customize_save', [ $this, '_customize_save' ] );
-		add_filter( 'wp_nav_menu_objects', [ $this, '_remove_current_classes' ], 10, 2 );
+		add_action( 'wp_update_nav_menu', array( $this, '_wp_update_nav_menu' ) );
+		add_filter( 'wp_nav_menu', array( $this, '_set_cache' ), 10, 2 );
+		add_filter( 'pre_wp_nav_menu', array( $this, '_pre_wp_nav_menu' ), 10, 2 );
+		add_action( 'customize_save', array( $this, '_customize_save' ) );
+		add_filter( 'wp_nav_menu_objects', array( $this, '_remove_current_classes' ), 10, 2 );
 	}
 
 	/**

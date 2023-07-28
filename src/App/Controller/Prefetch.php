@@ -13,7 +13,7 @@ class Prefetch {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'wp_enqueue_scripts', [ $this, '_wp_enqueue_scripts' ] );
+		add_action( 'wp_enqueue_scripts', array( $this, '_wp_enqueue_scripts' ) );
 	}
 
 	/**
@@ -29,7 +29,7 @@ class Prefetch {
 		wp_enqueue_script(
 			'wp-page-speed-optimization@prefetch',
 			get_template_directory_uri() . $relative_path,
-			[],
+			array(),
 			filemtime( get_template_directory() . $relative_path ),
 			true
 		);

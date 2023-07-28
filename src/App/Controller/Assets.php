@@ -20,18 +20,18 @@ class Assets {
 		}
 
 		// wp_enqueue_scripts hook is called in wp_head:1
-		add_action( 'wp_head', [ $this, '_optimize_jquery_loading' ], 2 );
+		add_action( 'wp_head', array( $this, '_optimize_jquery_loading' ), 2 );
 
 		// Printing footer scripts in wp_print_footer_scripts:10
-		add_action( 'wp_print_footer_scripts', [ $this, '_optimize_jquery_loading_for_footer' ], 9 );
+		add_action( 'wp_print_footer_scripts', array( $this, '_optimize_jquery_loading_for_footer' ), 9 );
 
-		add_action( 'wp_head', [ $this, '_scripts_move_to_head' ], 2 );
-		add_filter( 'script_loader_tag', [ $this, '_set_defer' ], 11, 2 );
-		add_filter( 'script_loader_tag', [ $this, '_set_async' ], 11, 2 );
+		add_action( 'wp_head', array( $this, '_scripts_move_to_head' ), 2 );
+		add_filter( 'script_loader_tag', array( $this, '_set_defer' ), 11, 2 );
+		add_filter( 'script_loader_tag', array( $this, '_set_async' ), 11, 2 );
 
-		add_filter( 'script_loader_tag', [ $this, '_builded' ], 10, 3 );
-		add_filter( 'style_loader_tag', [ $this, '_set_preload_stylesheet' ], 10, 3 );
-		add_action( 'wp_footer', [ $this, '_build_stylesheet_link' ], 99999 );
+		add_filter( 'script_loader_tag', array( $this, '_builded' ), 10, 3 );
+		add_filter( 'style_loader_tag', array( $this, '_set_preload_stylesheet' ), 10, 3 );
+		add_action( 'wp_footer', array( $this, '_build_stylesheet_link' ), 99999 );
 	}
 
 	/**
@@ -42,7 +42,7 @@ class Assets {
 			return;
 		}
 
-		if ( in_array( $GLOBALS['pagenow'], [ 'wp-login.php', 'wp-register.php' ], true ) ) {
+		if ( in_array( $GLOBALS['pagenow'], array( 'wp-login.php', 'wp-register.php' ), true ) ) {
 			return;
 		}
 
@@ -52,13 +52,17 @@ class Assets {
 
 		wp_deregister_script( 'jquery' );
 		wp_deregister_script( 'jquery-core' );
-		wp_register_script( 'jquery', false, [ 'jquery-core' ], $jquery_ver );
-		wp_register_script( 'jquery-core', $jquery_src, [], $jquery_ver );
+		wp_register_script( 'jquery', false, array( 'jquery-core' ), $jquery_ver );
+		wp_register_script( 'jquery-core', $jquery_src, array(), $jquery_ver );
 
 		$defer_scripts = new Defer_Scripts();
 		$handles       = $defer_scripts->get();
 
 		foreach ( $handles as $handle ) {
+			if ( wp_scripts()->get_data( $handle, 'strategy' ) ) {
+				continue;
+			}
+
 			if ( wp_scripts()->get_data( $handle, 'after' ) ) {
 				continue;
 			}
@@ -106,9 +110,12 @@ class Assets {
 	 * defer/async script move to head.
 	 */
 	public function _scripts_move_to_head() {
+		$defer_handles = $this->_get_defer_handles();
+		$async_handles = $this->_get_async_handles();
+
 		$handles = array_merge(
-			$this->_get_defer_handles(),
-			$this->_get_async_handles()
+			$defer_handles,
+			$async_handles
 		);
 
 		if ( ! $handles ) {
@@ -124,11 +131,11 @@ class Assets {
 			}
 		}
 
-		foreach ( $this->_get_defer_handles() as $handle ) {
+		foreach ( $defer_handles as $handle ) {
 			wp_scripts()->add_data( $handle, 'defer', true );
 		}
 
-		foreach ( $this->_get_async_handles() as $handle ) {
+		foreach ( $async_handles as $handle ) {
 			wp_scripts()->add_data( $handle, 'async', true );
 		}
 	}
@@ -141,6 +148,10 @@ class Assets {
 	 * @return string
 	 */
 	public function _set_defer( $tag, $handle ) {
+		if ( false !== strpos( $tag, 'strategy' ) ) {
+			return $tag;
+		}
+
 		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
 			return $tag;
 		}
@@ -164,6 +175,10 @@ class Assets {
 	 * @return string
 	 */
 	public function _set_async( $tag, $handle ) {
+		if ( false !== strpos( $tag, 'strategy' ) ) {
+			return $tag;
+		}
+
 		if ( false !== strpos( $tag, ' defer' ) || false !== strpos( $tag, ' async' ) ) {
 			return $tag;
 		}
@@ -189,7 +204,7 @@ class Assets {
 	 * @return string
 	 */
 	public function _builded( $tag, $handle, $src ) {
-		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_builded_scripts', [] );
+		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_builded_scripts', array() );
 		if ( ! $handles ) {
 			return $tag;
 		}
@@ -219,7 +234,7 @@ class Assets {
 	 * @return string
 	 */
 	public function _set_preload_stylesheet( $tag, $handle, $src ) {
-		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_output_head_styles', [] );
+		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_output_head_styles', array() );
 		if ( in_array( $handle, $handles, true ) && 0 === strpos( $src, site_url() ) ) {
 			$abspath = untrailingslashit( ABSPATH );
 			$target  = $abspath . str_replace( site_url(), '', $src );
@@ -240,7 +255,7 @@ class Assets {
 			$buffer = preg_replace( '|(url\(\s*?[\'"]?)./|', '$1' . dirname( $parse['path'] ) . '/', $buffer );
 			$buffer = preg_replace( '|(url\(\s*?[\'"]?)../|', '$1' . dirname( $parse['path'] ) . '/../', $buffer );
 			$buffer = preg_replace( '|(url\(\s*?[\'"]?)//|', '$1/', $buffer );
-			$buffer = str_replace( [ "\n\r", "\n", "\r", "\t" ], '', $buffer );
+			$buffer = str_replace( array( "\n\r", "\n", "\r", "\t" ), '', $buffer );
 			$buffer = preg_replace( '|{\s*|', '{', $buffer );
 			$buffer = preg_replace( '|}\s*|', '}', $buffer );
 			$buffer = preg_replace( '|;\s*|', ';', $buffer );
@@ -257,7 +272,7 @@ class Assets {
 			return;
 		}
 
-		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', [] );
+		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', array() );
 		if ( in_array( $handle, $handles, true ) ) {
 			?>
 			<!-- <?php echo $tag; // xss ok. ?> -->
@@ -276,7 +291,7 @@ class Assets {
 	 * Builed stylesheet link tag.
 	 */
 	public function _build_stylesheet_link() {
-		if ( ! apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', [] ) ) {
+		if ( ! apply_filters( 'inc2734_wp_page_speed_optimization_preload_stylesheets', array() ) ) {
 			return;
 		}
 
@@ -313,7 +328,14 @@ document.head.appendChild(s);
 	 * @return array
 	 */
 	protected function _get_defer_handles() {
-		return apply_filters( 'inc2734_wp_page_speed_optimization_defer_scripts', [] );
+		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_defer_scripts', array() );
+		$handles = array_filter(
+			$handles,
+			function( $handle ) {
+				return ! wp_scripts()->get_data( $handle, 'strategy' );
+			}
+		);
+		return $handles;
 	}
 
 	/**
@@ -322,6 +344,13 @@ document.head.appendChild(s);
 	 * @return array
 	 */
 	protected function _get_async_handles() {
-		return apply_filters( 'inc2734_wp_page_speed_optimization_async_scripts', [] );
+		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_async_scripts', array() );
+		$handles = array_filter(
+			$handles,
+			function( $handle ) {
+				return ! wp_scripts()->get_data( $handle, 'strategy' );
+			}
+		);
+		return $handles;
 	}
 }

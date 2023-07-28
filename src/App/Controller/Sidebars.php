@@ -13,9 +13,9 @@ class Sidebars {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_filter( 'widget_update_callback', [ $this, '_widget_update_callback' ], 10, 4 );
-		add_action( 'customize_save', [ $this, '_customize_save' ] );
-		add_action( 'save_post', [ $this, '_save_post' ] );
+		add_filter( 'widget_update_callback', array( $this, '_widget_update_callback' ), 10, 4 );
+		add_action( 'customize_save', array( $this, '_customize_save' ) );
+		add_action( 'save_post', array( $this, '_save_post' ) );
 	}
 
 	/**

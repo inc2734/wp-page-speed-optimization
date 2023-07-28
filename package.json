@@ -1,28 +1,33 @@
 {
+  "engines": {
+    "node": ">=14.0.0 < 15",
+    "npm": ">=6.9.0 <7"
+  },
   "author": "inc2734",
   "license": "GPL-2.0+",
   "devDependencies": {
     "@inc2734/for-each-html-nodes": "^0.4.0",
-    "@wordpress/env": "github:team-hamworks/wordpress-env",
-    "@wordpress/scripts": "^16.1.4",
+    "@wordpress/env": "8.4.0",
+    "@wordpress/scripts": "^26.9.0",
     "npm-run-all": "^4.1.5",
-    "rimraf": "^3.0.2"
+    "rimraf": "^5.0.1"
   },
   "scripts": {
     "wp-env": "wp-env",
     "start": "wp-env start",
     "stop": "wp-env stop",
     "cli": "wp-env run cli",
-    "wp": "wp-env run cli wp",
-    "pretest": "wp-env start && wp-env run composer 'install --no-interaction'",
-    "test:lint:php": "wp-env run composer run-script lint",
+    "wp": "wp-env run cli --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" wp",
+    "composer": "wp-env run cli --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" composer",
+    "pretest": "wp-env start && npm run composer install -- --no-interaction",
+    "test:lint:php": "npm run composer lint",
     "test:lint": "run-s test:lint:*",
-    "test:unit:php": "wp-env run phpunit 'phpunit -c /var/www/html/wp-content/plugins/wp-page-speed-optimization/.phpunit.xml.dist --verbose'",
+    "test:unit:php": "wp-env start && wp-env run --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" tests-wordpress vendor/bin/phpunit -c .phpunit.xml.dist --verbose",
     "test:unit": "run-s test:unit:*",
     "test": "run-s test:*",
     "clean:js": "rimraf src/assets/js",
     "js:prefetch": "wp-scripts build src/src/js/prefetch --output-path=src/assets/js",
-    "js": "npm-run-all -p clean:js && npm-run-all -p js:*",
-    "build": "npm-run-all -p js"
+    "js": "run-s clean:js && run-p js:*",
+    "build": "run-s js"
   }
 }

@@ -26,7 +26,7 @@ function write_cache_control_setting( $enable ) {
 	}
 
 	if ( $enable ) {
-		$rules   = [];
+		$rules   = array();
 		$rules[] = '<ifModule mod_expires.c>';
 		$rules[] = 'ExpiresActive On';
 		$rules[] = '<FilesMatch "\.(css|js)$">';
@@ -43,7 +43,7 @@ function write_cache_control_setting( $enable ) {
 		$rules[] = '</FilesMatch>';
 		$rules[] = '</IfModule>';
 	} else {
-		$rules = [];
+		$rules = array();
 	}
 
 	return insert_with_markers( $htaccess, 'inc2734/wp-page-speed-optimization', $rules );
