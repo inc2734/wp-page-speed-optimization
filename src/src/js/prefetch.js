@@ -1,8 +1,5 @@
-import forEachHtmlNodes from '@inc2734/for-each-html-nodes';
-
 const queue = [];
 const prefetched = [];
-let prefetchedIdx = 0;
 
 const enqueue = (_url) => {
   const url = new URL(_url);
@@ -78,10 +75,7 @@ const initObserve = (links) => {
   });
 
   const observer = new IntersectionObserver(callback, options);
-
-  const handleObserve = (link) => observer.observe(link);
-
-  forEachHtmlNodes(links, handleObserve);
+  links.forEach((link) => observer.observe(link));
 };
 
 const handleHover = (event) => {
@@ -90,8 +84,6 @@ const handleHover = (event) => {
   link.removeEventListener('mouseenter', handleHover);
 };
 
-const initHover = (link) => link.addEventListener('mouseenter', handleHover);
-
 document.addEventListener(
   'DOMContentLoaded',
   () => {
@@ -99,12 +91,16 @@ document.addEventListener(
       return;
     }
 
+    const blacklist = ['\/wp-admin\/', '\/wp-login.php'];
+
     const selectors = WPPSO.prefetch.selector.split(',');
     const selectorWithLink = selectors.map((selector) => `${ selector } a[href^="${ window.location.origin }"]`);
-    const links = document.querySelectorAll(selectorWithLink);
+    const links = [].slice.call(document.querySelectorAll(selectorWithLink)).filter((link) => {
+      return blacklist.every((regex) => ! link.href.match(regex));
+    });
 
     initObserve(links);
-    forEachHtmlNodes(links, initHover);
+    links.forEach((link) => link.addEventListener('mouseenter', handleHover))
     const timerId = setInterval(handleInterval, WPPSO.prefetch.interval);
   }
 );
