@@ -15,7 +15,7 @@ namespace Inc2734\WP_Page_Speed_Optimization\Helper;
  */
 function write_cache_control_setting( $enable ) {
 	if ( ! function_exists( 'get_home_path' ) ) {
-		require_once( ABSPATH . 'wp-admin/includes/file.php' );
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 	}
 
 	$home_path = get_home_path();

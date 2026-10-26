@@ -6,9 +6,11 @@
     "php": ">=7.4"
   },
   "require-dev": {
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
-    "wp-coding-standards/wpcs": "^2.3",
-    "yoast/phpunit-polyfills": "^1.0"
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+    "wp-coding-standards/wpcs": "^3.1",
+    "phpcompatibility/phpcompatibility-wp": "*",
+    "yoast/phpunit-polyfills": "^2.0",
+    "phpunit/phpunit": "^9.6"
   },
   "authors": [
     {
@@ -22,8 +24,8 @@
     }
   },
   "scripts": {
-    "lint": "./vendor/squizlabs/php_codesniffer/bin/phpcs",
-    "format": "./vendor/squizlabs/php_codesniffer/bin/phpcbf"
+    "lint": "phpcs --standard=.phpcs.xml.dist",
+    "format": "phpcbf --standard=.phpcs.xml.dist --report-summary --report-source"
   },
   "config": {
     "allow-plugins": {

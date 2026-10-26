@@ -331,7 +331,7 @@ document.head.appendChild(s);
 		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_defer_scripts', array() );
 		$handles = array_filter(
 			$handles,
-			function( $handle ) {
+			function ( $handle ) {
 				return ! wp_scripts()->get_data( $handle, 'strategy' );
 			}
 		);
@@ -347,7 +347,7 @@ document.head.appendChild(s);
 		$handles = apply_filters( 'inc2734_wp_page_speed_optimization_async_scripts', array() );
 		$handles = array_filter(
 			$handles,
-			function( $handle ) {
+			function ( $handle ) {
 				return ! wp_scripts()->get_data( $handle, 'strategy' );
 			}
 		);

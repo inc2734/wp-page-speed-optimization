@@ -2,3 +2,5 @@
 vendor/
 node_modules/
 .phpunit.result.cache
+.phpcs-cache
+.wp-env.tests.override.json

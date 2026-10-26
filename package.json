@@ -1,13 +1,16 @@
 {
   "engines": {
-    "node": ">=14.0.0 < 15",
-    "npm": ">=6.9.0 <7"
+    "node": ">=24.22.1",
+    "npm": ">=11.19.1"
+  },
+  "volta": {
+    "node": "24.22.1"
   },
   "author": "inc2734",
   "license": "GPL-2.0+",
   "devDependencies": {
-    "@wordpress/env": "8.4.0",
-    "@wordpress/scripts": "^26.9.0",
+    "@wordpress/env": "^12.0.0",
+    "@wordpress/scripts": "^37.0.0",
     "npm-run-all": "^4.1.5",
     "rimraf": "^5.0.1"
   },
@@ -15,17 +18,27 @@
     "wp-env": "wp-env",
     "start": "wp-env start",
     "stop": "wp-env stop",
+    "destroy": "wp-env destroy && wp-env destroy --config=.wp-env.tests.json",
     "cli": "wp-env run cli",
     "wp": "wp-env run cli --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" wp",
     "composer": "wp-env run cli --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" composer",
-    "pretest": "wp-env start && npm run composer install -- --no-interaction",
-    "test:lint:php": "npm run composer lint",
-    "test:lint": "run-s test:lint:*",
-    "test:unit:php": "wp-env start && wp-env run --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" tests-wordpress vendor/bin/phpunit -c .phpunit.xml.dist --verbose",
-    "test:unit": "run-s test:unit:*",
-    "test": "run-s test:*",
+    "test:php:start": "wp-env start --config=.wp-env.tests.json",
+    "test:php:stop": "wp-env stop --config=.wp-env.tests.json",
+    "test-composer": "wp-env run cli --config=.wp-env.tests.json --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" composer",
+    "pretest:php:lint": "npm run test:php:start && npm run test-composer -- install --no-interaction",
+    "test:php:lint": "wp-env run wordpress --config=.wp-env.tests.json --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" composer run-script lint",
+    "posttest:php:lint": "npm run test:php:stop",
+    "pretest:php:unit": "npm run test:php:start && npm run test-composer -- install --no-interaction",
+    "test:php:unit": "wp-env run wordpress --config=.wp-env.tests.json --env-cwd=\"wp-content/plugins/wp-page-speed-optimization\" vendor/bin/phpunit -- -c .phpunit.xml.dist --verbose",
+    "posttest:php:unit": "npm run test:php:stop",
+    "test:lint:php": "npm run test:php:lint || (test_status=$?; npm run test:php:stop; exit $test_status)",
+    "test:lint": "run-s test:lint:php",
+    "test:unit:js": "node --test tests/js/*.test.cjs",
+    "test:unit:php": "npm run test:php:unit || (test_status=$?; npm run test:php:stop; exit $test_status)",
+    "test:unit": "run-s test:unit:js test:unit:php",
+    "test": "run-s test:lint test:unit",
     "clean:js": "rimraf src/assets/js",
-    "js:prefetch": "wp-scripts build src/src/js/prefetch --output-path=src/assets/js",
+    "js:prefetch": "wp-scripts build src/src/js/prefetch.js --output-path=src/assets/js",
     "js": "run-s clean:js && run-p js:*",
     "build": "run-s js"
   }

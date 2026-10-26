@@ -1,9 +1,10 @@
 {
-  "core": null,
-  "mappings": {
-    "wp-content/plugins/wp-page-speed-optimization": "./"
-  },
-  "config": {
-    "WP_DEBUG": true
-  }
+	"core": null,
+	"testsEnvironment": false,
+	"mappings": {
+		"wp-content/plugins/wp-page-speed-optimization": "./"
+	},
+	"config": {
+		"WP_DEBUG": true
+	}
 }
